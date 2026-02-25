@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
-
 import { 
   UserPlus, Database, CheckCircle, AlertCircle, 
   Loader2, Trash2, Download, ArrowUpDown, 
-  Search, MapPin, School, Users
+  Search, MapPin, School, Users, Phone
 } from 'lucide-react';
 import { db } from '../firebase/firebase';
 import { collection, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
@@ -23,16 +22,17 @@ export function AdminDashboard() {
     middleName: '',
     lastName: '',
     homeAddress: '',
+    parentPhone: '', // Added field
     sport: 'Football',
     age: '11',
     gender: 'Male' 
   });
 
- 
   const downloadCSV = () => {
-    const headers = ["Name", "Institution", "Sport", "Age", "Gender", "Address", "Date"];
+    // Updated headers to include Phone and Address
+    const headers = ["Name", "Sport", "Age", "Gender", "Parent Phone", "Address", "Date"];
     const rows = filteredAthletes.map(a => [
-      a.name, a.school, a.sport, a.age, a.gender, a.homeAddress,
+      a.name, a.sport, a.age, a.gender, a.parentPhone || 'N/A', a.homeAddress || 'N/A',
       a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString() : 'N/A'
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -49,7 +49,7 @@ export function AdminDashboard() {
       const query = searchTerm.toLowerCase();
       items = items.filter(a => 
         a.name?.toLowerCase().includes(query) || 
-        a.school?.toLowerCase().includes(query)
+        a.parentPhone?.includes(query) // Allow searching by phone number
       );
     }
     if (sortConfig) {
@@ -82,7 +82,12 @@ export function AdminDashboard() {
         verified: true
       });
       setStatus({ type: 'success', msg: 'Sync Successful' });
-      setFormData({ firstName: '', middleName:'', lastName: '', homeAddress: '', sport: 'Football', age: '11', gender: 'Male' });
+      // Reset form including parentPhone
+      setFormData({ 
+        firstName: '', middleName:'', lastName: '', 
+        homeAddress: '', parentPhone: '', 
+        sport: 'Football', age: '11', gender: 'Male' 
+      });
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       setStatus({ type: 'error', msg: 'Connection Error' });
@@ -116,10 +121,10 @@ export function AdminDashboard() {
             <div className="bg-white px-6 py-4 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-6">
               <div className="text-center">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified</p>
-                <p className="text-2xl font-black text-navy">{athletes?.length || 0}</p>
+                <p className="text-2xl font-black text-[#0F172A]">{athletes?.length || 0}</p>
               </div>
               <div className="h-8 w-[1px] bg-slate-100" />
-              <button onClick={downloadCSV} className="p-3 bg-navy text-white rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-navy/20 flex items-center gap-2">
+              <button onClick={downloadCSV} className="p-3 bg-[#0F172A] text-white rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-navy/20 flex items-center gap-2">
                 <Download size={18} />
                 <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Export</span>
               </button>
@@ -132,10 +137,10 @@ export function AdminDashboard() {
           <aside className="lg:col-span-4">
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 p-8 sticky top-28">
                <div className="flex items-center gap-3 mb-8">
-                <div className="h-10 w-10 bg-gold/10 rounded-2xl flex items-center justify-center">
-                  <UserPlus size={20} className="text-gold" />
+                <div className="h-10 w-10 bg-amber-400/10 rounded-2xl flex items-center justify-center">
+                  <UserPlus size={20} className="text-amber-500" />
                 </div>
-                <h2 className="font-black text-navy text-sm uppercase tracking-widest">Entry Form</h2>
+                <h2 className="font-black text-[#0F172A] text-sm uppercase tracking-widest">Entry Form</h2>
                </div>
 
                <form onSubmit={handleRegister} className="space-y-5">
@@ -143,8 +148,9 @@ export function AdminDashboard() {
                     <Field label="First Name" value={formData.firstName} onChange={(v: any) => setFormData({...formData, firstName: v})} />
                     <Field label="Middle Name" value={formData.middleName} onChange={(v: any) => setFormData({...formData, middleName: v})} />
                     <Field label="Last Name" value={formData.lastName} onChange={(v: any) => setFormData({...formData, lastName: v})} />
+                    <Field label="Phone (Guardian)" type="tel" value={formData.parentPhone} onChange={(v: any) => setFormData({...formData, parentPhone: v})} />
                   </div>
-                 
+                  
                   <Field label="Home Address" value={formData.homeAddress} onChange={(v: any) => setFormData({...formData, homeAddress: v})} />
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -153,7 +159,7 @@ export function AdminDashboard() {
                   </div>
                   <Select label="Sport" options={['Football', 'Basketball', 'Volleyball', 'Table Tennis', 'Scrabbles']} value={formData.sport} onChange={(v: any) => setFormData({...formData, sport: v})} />
 
-                  <button disabled={isSubmitting} className="w-full py-4 bg-navy text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-navy/30 transition-all text-[11px] tracking-[0.2em] uppercase mt-2">
+                  <button disabled={isSubmitting} className="w-full py-4 bg-[#0F172A] text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-navy/30 transition-all text-[11px] tracking-[0.2em] uppercase mt-2">
                     {isSubmitting ? <Loader2 className="animate-spin mx-auto" /> : 'Confirm Registration'}
                   </button>
                </form>
@@ -163,10 +169,10 @@ export function AdminDashboard() {
           {/* TABLE PANEL */}
           <main className="lg:col-span-8 space-y-6">
             <div className="relative group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-gold transition-colors" size={20} />
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-amber-500 transition-colors" size={20} />
               <input 
-                placeholder="SEARCH RECORDS..." 
-                className="w-full pl-16 pr-8 py-5 bg-white rounded-[2rem] border border-slate-200 outline-none text-xs font-black tracking-widest text-navy focus:ring-4 focus:ring-gold/5 transition-all uppercase" 
+                placeholder="SEARCH RECORDS OR PHONE..." 
+                className="w-full pl-16 pr-8 py-5 bg-white rounded-[2rem] border border-slate-200 outline-none text-xs font-black tracking-widest text-[#0F172A] focus:ring-4 focus:ring-amber-500/5 transition-all uppercase" 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
             </div>
@@ -176,26 +182,28 @@ export function AdminDashboard() {
                 <table className="w-full text-left">
                   <thead className="bg-slate-50/50">
                     <tr>
-                      <SortHeader label="Athlete" k="name" current={sortConfig} onSort={requestSort} />
+                      <SortHeader label="Athlete / Contact" k="name" current={sortConfig} onSort={requestSort} />
                       <SortHeader label="Sport/Gender" k="sport" current={sortConfig} onSort={requestSort} />
-                      <SortHeader label="Age" k="ageGroup" current={sortConfig} onSort={requestSort} />
-                      <th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Delete</th>
+                      <SortHeader label="Address" k="homeAddress" current={sortConfig} onSort={requestSort} />
+                      <th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredAthletes.map((a: any) => (
                       <tr key={a.id} className="hover:bg-slate-50/50 transition-all">
                         <td className="px-8 py-6">
-                          <p className="font-black text-navy text-xs uppercase tracking-tight">{a.name}</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{a.school}</p>
+                          <p className="font-black text-[#0F172A] text-xs uppercase tracking-tight">{a.name}</p>
+                          <p className="text-[10px] text-slate-400 font-bold">{a.parentPhone}</p>
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black px-2 py-1 bg-navy text-white rounded uppercase">{a.sport}</span>
+                            <span className="text-[9px] font-black px-2 py-1 bg-[#0F172A] text-white rounded uppercase">{a.sport}</span>
                             <span className="text-[9px] font-black px-2 py-1 bg-slate-100 text-slate-500 rounded uppercase">{a.gender}</span>
                           </div>
                         </td>
-                        <td className="px-8 py-6 text-[11px] font-black text-slate-600 uppercase">{a.ageGroup}</td>
+                        <td className="px-8 py-6">
+                           <p className="text-[10px] font-bold text-slate-500 uppercase max-w-[150px] truncate">{a.homeAddress}</p>
+                        </td>
                         <td className="px-8 py-6 text-right">
                           <button onClick={() => handleDelete(a.id, a.name)} className="p-3 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all">
                             {isDeleting === a.id ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
@@ -212,12 +220,13 @@ export function AdminDashboard() {
                 {filteredAthletes.map((a: any) => (
                   <div key={a.id} className="p-6 flex justify-between items-center">
                     <div className="space-y-1">
-                      <p className="font-black text-navy text-sm uppercase tracking-tight">{a.name}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">{a.school}</p>
+                      <p className="font-black text-[#0F172A] text-sm uppercase tracking-tight">{a.name}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{a.parentPhone}</p>
+                      <p className="text-[9px] text-slate-400 italic truncate max-w-[200px]">{a.homeAddress}</p>
                       <div className="flex gap-2 pt-1">
-                        <span className="text-[9px] font-black px-2 py-0.5 bg-navy/5 text-navy rounded uppercase">{a.sport}</span>
-                        <span className="text-[9px] font-black px-2 py-0.5 bg-gold/10 text-gold rounded uppercase">{a.gender}</span>
-                        <span className="text-[9px] font-black px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase">{a.ageGroup}</span>
+                        <span className="text-[9px] font-black px-2 py-0.5 bg-navy/5 text-[#0F172A] rounded uppercase">{a.sport}</span>
+                        <span className="text-[9px] font-black px-2 py-0.5 bg-amber-400/10 text-amber-600 rounded uppercase">{a.age} YRS</span>
+                        <span className="text-[9px] font-black px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase">{a.gender}</span>
                       </div>
                     </div>
                     <button onClick={() => handleDelete(a.id, a.name)} className="p-4 bg-rose-50 text-rose-500 rounded-2xl">
@@ -235,17 +244,23 @@ export function AdminDashboard() {
 }
 
 // UI HELPERS
-const Field = ({ label, value, onChange }: any) => (
+const Field = ({ label, value, onChange, type = "text" }: any) => (
   <div className="space-y-1.5">
     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">{label}</label>
-    <input required value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 outline-none text-xs font-bold text-navy focus:border-gold/50 transition-all uppercase" />
+    <input 
+      required 
+      type={type}
+      value={value} 
+      onChange={(e) => onChange(e.target.value)} 
+      className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 outline-none text-xs font-bold text-[#0F172A] focus:border-amber-500/50 transition-all uppercase" 
+    />
   </div>
 );
 
 const Select = ({ label, options, value, onChange }: any) => (
   <div className="space-y-1.5">
     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">{label}</label>
-    <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-black text-navy uppercase">
+    <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs font-black text-[#0F172A] uppercase">
       {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
     </select>
   </div>
@@ -254,7 +269,7 @@ const Select = ({ label, options, value, onChange }: any) => (
 const SortHeader = ({ label, k, current, onSort }: any) => (
   <th onClick={() => onSort(k)} className="px-8 py-6 cursor-pointer hover:bg-slate-100 transition-colors">
     <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-      {label} <ArrowUpDown size={12} className={current?.key === k ? 'text-gold' : 'text-slate-200'} />
+      {label} <ArrowUpDown size={12} className={current?.key === k ? 'text-amber-500' : 'text-slate-200'} />
     </div>
   </th>
 );
