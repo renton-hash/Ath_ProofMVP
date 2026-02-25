@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow the application to read/write if the user is logged in
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Specific rule for admin users collection
+    match /admin_users/{adminId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

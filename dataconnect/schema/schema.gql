@@ -1,0 +1,70 @@
+type User @table {
+  email: String!
+  passwordHash: String!
+  role: String!
+  createdAt: Timestamp!
+  firstName: String
+  lastName: String
+  photoUrl: String
+}
+
+type Athlete @table {
+  firstName: String!
+  lastName: String!
+  dateOfBirth: Date!
+  gender: String!
+  createdAt: Timestamp!
+  contactNumber: String
+  emergencyContact: String
+  sport: String
+  position: String
+  user: User
+  coach: User
+}
+
+type TrainingProgram @table {
+  name: String!
+  description: String!
+  startDate: Date!
+  endDate: Date!
+  createdAt: Timestamp!
+  targetSport: String
+  difficultyLevel: String
+  coach: User
+}
+
+type Workout @table {
+  workoutDate: Date!
+  durationMinutes: Int!
+  type: String!
+  createdAt: Timestamp!
+  notes: String
+  perceivedEffort: Int
+  intensity: String
+  athlete: Athlete
+  trainingProgram: TrainingProgram
+}
+
+type PerformanceMetric @table {
+  metricName: String!
+  value: Float!
+  unit: String!
+  recordedAt: Timestamp!
+  notes: String
+  benchmark: String
+  athlete: Athlete
+  workout: Workout
+}
+
+type Injury @table {
+  injuryDate: Date!
+  injuryType: String!
+  severity: String!
+  status: String!
+  createdAt: Timestamp!
+  description: String
+  recoveryPlan: String
+  estimatedRecoveryDate: Date
+  athlete: Athlete
+  coach: User
+}

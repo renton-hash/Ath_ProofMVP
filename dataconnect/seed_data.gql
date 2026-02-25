@@ -1,0 +1,151 @@
+mutation SeedData @transaction @auth(level: USER, insecureReason: "Seed data mutation is for development purposes and should only be run by authenticated users.") {
+  user_insertMany(
+    data: [
+      {
+        id: "a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1",
+        email: "coach.bob@example.com",
+        passwordHash: "hashedpassword1",
+        role: "Coach",
+        firstName: "Bob",
+        lastName: "Coachman",
+        createdAt: "2023-01-01T10:00:00Z"
+      },
+      {
+        id: "b2b2b2b2-b2b2-4b2b-b2b2-b2b2b2b2b2b2",
+        email: "athlete.alice@example.com",
+        passwordHash: "hashedpassword2",
+        role: "Athlete",
+        firstName: "Alice",
+        lastName: "Athleton",
+        createdAt: "2023-01-02T11:00:00Z"
+      },
+      {
+        id: "c3c3c3c3-c3c3-4c3c-c3c3-c3c3c3c3c3c3",
+        email: "athlete.charlie@example.com",
+        passwordHash: "hashedpassword3",
+        role: "Athlete",
+        firstName: "Charlie",
+        lastName: "Runner",
+        createdAt: "2023-01-03T12:00:00Z"
+      }
+    ]
+  )
+  athlete_insertMany(
+    data: [
+      {
+        id: "d4d4d4d4-d4d4-4d4d-d4d4-d4d4d4d4d4d4",
+        firstName: "Alice",
+        lastName: "Athleton",
+        dateOfBirth: "2000-05-15",
+        gender: "Female",
+        sport: "Running",
+        position: "Mid-distance",
+        contactNumber: "555-1234",
+        emergencyContact: "555-5678",
+        createdAt: "2023-01-02T11:00:00Z",
+        userId: "b2b2b2b2-b2b2-4b2b-b2b2-b2b2b2b2b2b2",
+        coachId: "a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1"
+      },
+      {
+        id: "e5e5e5e5-e5e5-4e5e-e5e5-e5e5e5e5e5e5",
+        firstName: "Charlie",
+        lastName: "Runner",
+        dateOfBirth: "1998-11-20",
+        gender: "Male",
+        sport: "Running",
+        position: "Sprinter",
+        contactNumber: "555-9876",
+        emergencyContact: "555-4321",
+        createdAt: "2023-01-03T12:00:00Z",
+        userId: "c3c3c3c3-c3c3-4c3c-c3c3-c3c3c3c3c3c3",
+        coachId: "a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1"
+      }
+    ]
+  )
+  trainingProgram_insertMany(
+    data: [
+      {
+        id: "f6f6f6f6-f6f6-4f6f-f6f6-f6f6f6f6f6f6",
+        name: "Beginner Running Program",
+        description: "A 12-week program for new runners.",
+        startDate: "2023-01-10",
+        endDate: "2023-04-04",
+        targetSport: "Running",
+        difficultyLevel: "Beginner",
+        createdAt: "2023-01-05T09:00:00Z",
+        coachId: "a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1"
+      }
+    ]
+  )
+  workout_insertMany(
+    data: [
+      {
+        id: "10101010-1010-4101-1010-101010101010",
+        workoutDate: "2023-01-12",
+        durationMinutes: 30,
+        type: "Cardio",
+        perceivedEffort: 6,
+        intensity: "Moderate",
+        notes: "Easy run to start the program.",
+        createdAt: "2023-01-12T07:00:00Z",
+        athleteId: "d4d4d4d4-d4d4-4d4d-d4d4-d4d4d4d4d4d4",
+        trainingProgramId: "f6f6f6f6-f6f6-4f6f-f6f6-f6f6f6f6f6f6"
+      },
+      {
+        id: "20202020-2020-4202-2020-202020202020",
+        workoutDate: "2023-01-13",
+        durationMinutes: 45,
+        type: "Strength",
+        perceivedEffort: 7,
+        intensity: "Medium",
+        notes: "Leg day, feeling good.",
+        createdAt: "2023-01-13T08:00:00Z",
+        athleteId: "d4d4d4d4-d4d4-4d4d-d4d4-d4d4d4d4d4d4",
+        trainingProgramId: "f6f6f6f6-f6f6-4f6f-f6f6-f6f6f6f6f6f6"
+      }
+    ]
+  )
+  injury_insertMany(
+    data: [
+      {
+        id: "30303030-3030-4303-3030-303030303030",
+        injuryDate: "2023-02-01",
+        injuryType: "Hamstring Strain",
+        severity: "Mild",
+        status: "Recovering",
+        description: "Felt a pull during a sprint.",
+        recoveryPlan: "Rest, ice, compression, elevation.",
+        estimatedRecoveryDate: "2023-02-15",
+        createdAt: "2023-02-01T15:00:00Z",
+        athleteId: "e5e5e5e5-e5e5-4e5e-e5e5-e5e5e5e5e5e5",
+        coachId: "a1a1a1a1-a1a1-4a1a-a1a1-a1a1a1a1a1a1"
+      }
+    ]
+  )
+  performanceMetric_insertMany(
+    data: [
+      {
+        id: "40404040-4040-4404-4040-404040404040",
+        metricName: "Running Speed",
+        value: 12.5,
+        unit: "km/h",
+        recordedAt: "2023-01-12T07:30:00Z",
+        notes: "Average speed during 30 min run.",
+        createdAt: "2023-01-12T07:30:00Z",
+        athleteId: "d4d4d4d4-d4d4-4d4d-d4d4-d4d4d4d4d4d4",
+        workoutId: "10101010-1010-4101-1010-101010101010"
+      },
+      {
+        id: "50505050-5050-4505-5050-505050505050",
+        metricName: "Bench Press Max",
+        value: 80.0,
+        unit: "kg",
+        recordedAt: "2023-01-13T08:45:00Z",
+        notes: "New personal best.",
+        createdAt: "2023-01-13T08:45:00Z",
+        athleteId: "d4d4d4d4-d4d4-4d4d-d4d4-d4d4d4d4d4d4",
+        workoutId: "20202020-2020-4202-2020-202020202020"
+      }
+    ]
+  )
+}

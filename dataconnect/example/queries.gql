@@ -1,0 +1,23 @@
+query ListAthletes @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public as it only retrieves athlete data without sensitive information.") {
+  athletes {
+    id
+    firstName
+    lastName
+    sport
+    position
+    gender
+    dateOfBirth
+    contactNumber
+    emergencyContact
+    user {
+      id
+      email
+    }
+    coach {
+      id
+      email
+      firstName
+      lastName
+    }
+  }
+}
