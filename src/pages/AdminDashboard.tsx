@@ -20,19 +20,19 @@ export function AdminDashboard() {
 
   const [formData, setFormData] = useState({
     firstName: '',
+    middleName: '',
     lastName: '',
-    school: '',
     homeAddress: '',
     sport: 'Football',
-    ageGroup: 'U-17',
-    gender: 'Male' // Added Gender
+    age: '11',
+    gender: 'Male' 
   });
 
-  // Export Logic with Gender included
+ 
   const downloadCSV = () => {
-    const headers = ["Name", "Institution", "Sport", "Age Group", "Gender", "Address", "Date"];
+    const headers = ["Name", "Institution", "Sport", "Age", "Gender", "Address", "Date"];
     const rows = filteredAthletes.map(a => [
-      a.name, a.school, a.sport, a.ageGroup, a.gender, a.homeAddress,
+      a.name, a.school, a.sport, a.age, a.gender, a.homeAddress,
       a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString() : 'N/A'
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -82,7 +82,7 @@ export function AdminDashboard() {
         verified: true
       });
       setStatus({ type: 'success', msg: 'Sync Successful' });
-      setFormData({ firstName: '', lastName: '', school: '', homeAddress: '', sport: 'Football', ageGroup: 'U-17', gender: 'Male' });
+      setFormData({ firstName: '', middleName:'', lastName: '', homeAddress: '', sport: 'Football', age: '11', gender: 'Male' });
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       setStatus({ type: 'error', msg: 'Connection Error' });
@@ -141,16 +141,17 @@ export function AdminDashboard() {
                <form onSubmit={handleRegister} className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
                     <Field label="First Name" value={formData.firstName} onChange={(v: any) => setFormData({...formData, firstName: v})} />
+                    <Field label="Middle Name" value={formData.middleName} onChange={(v: any) => setFormData({...formData, middleName: v})} />
                     <Field label="Last Name" value={formData.lastName} onChange={(v: any) => setFormData({...formData, lastName: v})} />
                   </div>
-                  <Field label="Institution" value={formData.school} onChange={(v: any) => setFormData({...formData, school: v})} />
+                 
                   <Field label="Home Address" value={formData.homeAddress} onChange={(v: any) => setFormData({...formData, homeAddress: v})} />
                   
                   <div className="grid grid-cols-2 gap-4">
                     <Select label="Gender" options={['Male', 'Female']} value={formData.gender} onChange={(v: any) => setFormData({...formData, gender: v})} />
-                    <Select label="Age Group" options={['U-13', 'U-15', 'U-17', 'U-21']} value={formData.ageGroup} onChange={(v: any) => setFormData({...formData, ageGroup: v})} />
+                    <Select label="Age" options={['11', '12', '13','14', '15', '16', '17', '18','19', '20']} value={formData.age} onChange={(v: any) => setFormData({...formData, age: v})} />
                   </div>
-                  <Select label="Sport" options={['Football', 'Basketball', 'Tennis', 'Athletics']} value={formData.sport} onChange={(v: any) => setFormData({...formData, sport: v})} />
+                  <Select label="Sport" options={['Football', 'Basketball', 'Volleyball', 'Table Tennis', 'Scrabbles']} value={formData.sport} onChange={(v: any) => setFormData({...formData, sport: v})} />
 
                   <button disabled={isSubmitting} className="w-full py-4 bg-navy text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-navy/30 transition-all text-[11px] tracking-[0.2em] uppercase mt-2">
                     {isSubmitting ? <Loader2 className="animate-spin mx-auto" /> : 'Confirm Registration'}
