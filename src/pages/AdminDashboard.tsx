@@ -197,7 +197,7 @@ export function AdminDashboard() {
                     <Select label="Gender" options={['Male', 'Female']} value={formData.gender} onChange={(v: string) => setFormData({...formData, gender: v})} />
                     <Select label="Age" options={['11', '12', '13','14', '15', '16', '17', '18','19', '20']} value={formData.age} onChange={(v: string) => setFormData({...formData, age: v})} />
                   </div>
-                  <Select label="Sport" options={['Football', 'Basketball', 'Volleyball', 'Table Tennis', 'Scrabbles']} value={formData.sport} onChange={(v: string) => setFormData({...formData, sport: v})} />
+                  <Select label="Sport" options={['Football', 'Basketball', 'Badminton', 'Volleyball', 'Table Tennis', 'Scrabbles']} value={formData.sport} onChange={(v: string) => setFormData({...formData, sport: v})} />
 
                   <button disabled={isSubmitting} className="w-full py-4 bg-[#0F172A] text-white font-black rounded-2xl uppercase mt-2">
                     {isSubmitting ? <Loader2 className="animate-spin mx-auto" /> : 'Confirm Registration'}
