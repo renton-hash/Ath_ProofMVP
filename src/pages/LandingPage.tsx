@@ -1,18 +1,15 @@
-import { useState, useMemo, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   Search,
-  MapPin,
-  Calendar,
   Download,
-  ChevronRight,
   Trophy,
   Users,
-  Star,
-  Loader2,
   ArrowRight,
   School,
-  Medal
+  Medal,
+  Phone,
+  MapPin
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CountdownTimer } from '../components/CountdownTimer';
@@ -36,13 +33,11 @@ export function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSport, setFilterSport] = useState('All');
 
-  // --- LOGIC: CALCULATE REAL-TIME STATS ---
   const stats = useMemo(() => {
     const list = athletes || [];
-    // Calculate school distribution
     const schoolMap: Record<string, number> = {};
-    list.forEach((a: { school: string | number; }) => {
-      if (a.school) schoolMap[a.school] = (schoolMap[a.school] || 0) + 1;
+    list.forEach((a: any) => {
+      if (a.homeAddress) schoolMap[a.homeAddress] = (schoolMap[a.homeAddress] || 0) + 1;
     });
 
     const topSchools = Object.entries(schoolMap)
@@ -54,7 +49,7 @@ export function LandingPage() {
       total: list.length,
       topSchools,
       sportsCounts: sportsList.reduce((acc, s) => {
-        acc[s.name] = list.filter((a: { sport: string; }) => a.sport === s.name).length;
+        acc[s.name] = list.filter((a: any) => a.sport === s.name).length;
         return acc;
       }, {} as Record<string, number>)
     };
@@ -62,8 +57,8 @@ export function LandingPage() {
 
   const filteredAthletes = (athletes || []).filter((a: any) => {
     const q = searchQuery.toLowerCase();
-    const fullName = a.name || `${a.firstName || ''} ${a.lastName || ''}`;
-    const matchQ = !q || fullName.toLowerCase().includes(q) || a.school?.toLowerCase().includes(q);
+    const fullName = `${a.firstName || ''} ${a.middleName || ''} ${a.lastName || ''}`.toLowerCase();
+    const matchQ = !q || fullName.includes(q) || a.homeAddress?.toLowerCase().includes(q) || a.parentPhone?.includes(q);
     const matchSport = filterSport === 'All' || a.sport === filterSport;
     return matchQ && matchSport;
   });
@@ -88,8 +83,6 @@ export function LandingPage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 w-full">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl">
-            
-            {/* Live Registration Badge */}
             <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 p-2 pr-6 rounded-2xl mb-8">
               <div className="bg-gold p-3 rounded-xl shadow-lg shadow-gold/20">
                 <Users className="text-navy" size={24} />
@@ -122,18 +115,18 @@ export function LandingPage() {
 
       <CountdownTimer />
 
-      {/* --- QUICK STATS & TOP SCHOOLS --- */}
+      {/* --- QUICK STATS & TOP AREAS --- */}
       <section className="py-12 px-6 bg-navy text-white">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1 flex flex-col justify-center">
             <h3 className="text-gold font-black text-2xl mb-2">TOP DELEGATIONS</h3>
-            <p className="text-gray-400 text-sm">Schools with the highest registration volume.</p>
+            <p className="text-gray-400 text-sm">Most registered athletes by residential area.</p>
           </div>
           <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.topSchools.map((school, i) => (
               <div key={i} className="bg-white/5 p-6 rounded-3xl border border-white/10 hover:border-gold/50 transition-colors">
-                <School className="text-gold mb-3" size={24} />
-                <p className="text-xs text-gray-400 font-bold uppercase truncate">{school.name}</p>
+                <MapPin className="text-gold mb-3" size={24} />
+                <p className="text-xs text-gray-400 font-bold uppercase truncate">{school.name || 'Undefined Area'}</p>
                 <p className="text-2xl font-black">{school.count} <span className="text-sm font-normal text-gray-500">Athletes</span></p>
               </div>
             ))}
@@ -149,16 +142,6 @@ export function LandingPage() {
               <h2 className="text-5xl font-black text-navy leading-none">THE GAMES</h2>
               <p className="text-gray-500 mt-2 font-medium uppercase tracking-widest text-sm">Official Competition Disciplines</p>
             </div>
-            <div className="flex gap-4 bg-white p-2 rounded-2xl shadow-sm border">
-              <div className="text-center px-6 border-r">
-                <p className="text-2xl font-black text-navy">{sportsList.length}</p>
-                <p className="text-[10px] font-bold text-gray-400">SPORTS</p>
-              </div>
-              <div className="text-center px-6">
-                <p className="text-2xl font-black text-gold">{loading ? '...' : stats.total}</p>
-                <p className="text-[10px] font-bold text-gray-400">ATHLETES</p>
-              </div>
-            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
@@ -166,7 +149,7 @@ export function LandingPage() {
               <div 
                 key={sport.name} 
                 onClick={() => setFilterSport(sport.name)}
-                className={`group bg-white p-8 rounded-[2rem] border-2 border-transparent hover:border-gold shadow-sm hover:shadow-xl transition-all cursor-pointer text-center`}
+                className={`group bg-white p-8 rounded-[2rem] border-2 ${filterSport === sport.name ? 'border-gold shadow-xl' : 'border-transparent'} hover:border-gold shadow-sm hover:shadow-xl transition-all cursor-pointer text-center`}
               >
                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{sport.emoji}</div>
                 <h4 className="font-bold text-navy mb-1">{sport.name}</h4>
@@ -181,50 +164,70 @@ export function LandingPage() {
       <section id="directory" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <h2 className="text-4xl font-black flex items-center gap-3">
+            <h2 className="text-4xl font-black flex items-center gap-3 text-navy">
               <Search className="text-gold" size={32} /> ATHLETE DIRECTORY
             </h2>
             <div className="flex w-full md:w-auto gap-4">
               <input 
                 type="text" 
-                placeholder="Search name or school..."
-                className="flex-1 md:w-80 px-6 py-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-gold"
+                placeholder="Search name, address, or phone..."
+                className="flex-1 md:w-96 px-6 py-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-gold border-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-navy/5 border overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-navy text-white">
-                <tr>
-                  <th className="px-8 py-6 text-xs font-black uppercase tracking-widest">Athlete</th>
-                  <th className="px-8 py-6 text-xs font-black uppercase tracking-widest">Sport</th>
-                  <th className="px-8 py-6 text-xs font-black uppercase tracking-widest">Institution</th>
-                  <th className="px-8 py-6 text-xs font-black uppercase tracking-widest text-right">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredAthletes.map((a: { name: any; firstName: any; lastName: any; sport: string | number | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | null | undefined; school: any; }, i: Key | null | undefined) => (
-                  <motion.tr key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gold/20 text-navy flex items-center justify-center font-black">
-                          {(a.name || a.firstName || "A")[0]}
+          <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-navy/5 border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                <thead className="bg-navy text-white">
+                    <tr>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Athlete Information</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Discipline</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Contact/Location</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-right">Verification</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                    {filteredAthletes.map((a: any, i: number) => (
+                    <motion.tr key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-gold/10 text-gold flex items-center justify-center font-black text-xs">
+                            {(a.firstName || "A")[0]}
+                            </div>
+                            <div>
+                                <p className="font-black text-navy uppercase text-sm tracking-tight leading-none mb-1">
+                                    {a.firstName} {a.middleName} {a.lastName}
+                                </p>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Age Group: {a.age} YRS</p>
+                            </div>
                         </div>
-                        <span className="font-bold text-navy uppercase text-sm tracking-tight">{a.name || `${a.firstName} ${a.lastName}`}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-sm font-semibold text-gray-600">{a.sport}</td>
-                    <td className="px-8 py-5 text-sm text-gray-500 font-medium">{a.school || 'Private Entry'}</td>
-                    <td className="px-8 py-5 text-right">
-                      <span className="px-4 py-1.5 rounded-full text-[10px] font-black bg-green-100 text-green-700 uppercase">Verified</span>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-8 py-5">
+                            <span className="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black rounded-lg uppercase border border-navy/10">{a.sport}</span>
+                        </td>
+                        <td className="px-8 py-5">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-gray-600">
+                                    <Phone size={12} className="text-gold" />
+                                    <span className="text-[11px] font-bold">{a.parentPhone || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-400">
+                                    <MapPin size={12} />
+                                    <span className="text-[10px] font-medium uppercase truncate max-w-[150px]">{a.homeAddress || 'Private Entry'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td className="px-8 py-5 text-right">
+                        <span className="px-4 py-1.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">Verified</span>
+                        </td>
+                    </motion.tr>
+                    ))}
+                </tbody>
+                </table>
+            </div>
             {filteredAthletes.length === 0 && !loading && (
               <div className="p-20 text-center text-gray-400 font-bold uppercase tracking-widest">No athletes found in directory</div>
             )}
@@ -232,7 +235,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* --- STANDINGS / MEDAL TABLE PREVIEW --- */}
+      {/* --- STANDINGS PREVIEW --- */}
       <section className="py-24 px-6 bg-navy relative overflow-hidden">
         <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
           <Trophy size={400} />
@@ -242,7 +245,7 @@ export function LandingPage() {
           <div className="text-center mb-16">
             <Medal className="text-gold mx-auto mb-4" size={48} />
             <h2 className="text-5xl font-black text-white">TOURNAMENT STANDINGS</h2>
-            <p className="text-gold font-bold tracking-[0.3em] mt-2">COMING SOON FEB 2026</p>
+            <p className="text-gold font-bold tracking-[0.3em] mt-2">REAL-TIME UPDATES COMING FEB 2026</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

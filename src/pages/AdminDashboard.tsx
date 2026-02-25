@@ -22,34 +22,38 @@ export function AdminDashboard() {
     middleName: '',
     lastName: '',
     homeAddress: '',
-    parentPhone: '', // Added field
+    parentPhone: '', 
     sport: 'Football',
     age: '11',
     gender: 'Male' 
   });
 
+  // --- LOGIC: CSV EXPORT WITH FULL INFO ---
   const downloadCSV = () => {
-    // Updated headers to include Phone and Address
-    const headers = ["Name", "Sport", "Age", "Gender", "Parent Phone", "Address", "Date"];
+    const headers = ["First Name", "Middle Name", "Last Name", "Sport", "Age", "Gender", "Parent Phone", "Address", "Date"];
     const rows = filteredAthletes.map(a => [
-      a.name, a.sport, a.age, a.gender, a.parentPhone || 'N/A', a.homeAddress || 'N/A',
+      a.firstName, a.middleName || '', a.lastName, a.sport, a.age, a.gender, a.parentPhone || 'N/A', `"${a.homeAddress || 'N/A'}"`,
       a.createdAt?.toDate ? a.createdAt.toDate().toLocaleDateString() : 'N/A'
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `Athletes_Registry_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `IYSDC_Athletes_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 
+  // --- LOGIC: FILTER & SORT ---
   const filteredAthletes = useMemo(() => {
     let items = athletes ? [...athletes] : [];
     if (searchTerm) {
       const query = searchTerm.toLowerCase();
       items = items.filter(a => 
-        a.name?.toLowerCase().includes(query) || 
-        a.parentPhone?.includes(query) // Allow searching by phone number
+        a.firstName?.toLowerCase().includes(query) || 
+        a.lastName?.toLowerCase().includes(query) ||
+        a.middleName?.toLowerCase().includes(query) ||
+        a.parentPhone?.includes(query) ||
+        a.homeAddress?.toLowerCase().includes(query)
       );
     }
     if (sortConfig) {
@@ -70,19 +74,20 @@ export function AdminDashboard() {
     setSortConfig({ key, direction });
   };
 
+  // --- LOGIC: SUBMIT REGISTRATION ---
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, 'athletes'), {
         ...formData,
-        name: `${formData.firstName} ${formData.lastName}`,
+        // Ensure middle name is included in the searchable name string
+        name: `${formData.firstName} ${formData.middleName ? formData.middleName + ' ' : ''}${formData.lastName}`,
         registeredBy: 'Admin',
         createdAt: serverTimestamp(),
         verified: true
       });
       setStatus({ type: 'success', msg: 'Sync Successful' });
-      // Reset form including parentPhone
       setFormData({ 
         firstName: '', middleName:'', lastName: '', 
         homeAddress: '', parentPhone: '', 
@@ -126,7 +131,7 @@ export function AdminDashboard() {
               <div className="h-8 w-[1px] bg-slate-100" />
               <button onClick={downloadCSV} className="p-3 bg-[#0F172A] text-white rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-navy/20 flex items-center gap-2">
                 <Download size={18} />
-                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Export</span>
+                <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Export CSV</span>
               </button>
             </div>
           </div>
@@ -140,20 +145,22 @@ export function AdminDashboard() {
                 <div className="h-10 w-10 bg-amber-400/10 rounded-2xl flex items-center justify-center">
                   <UserPlus size={20} className="text-amber-500" />
                 </div>
-                <h2 className="font-black text-[#0F172A] text-sm uppercase tracking-widest">Entry Form</h2>
+                <h2 className="font-black text-[#0F172A] text-sm uppercase tracking-widest">Athlete Entry</h2>
                </div>
 
-               <form onSubmit={handleRegister} className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
+               <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <Field label="First Name" value={formData.firstName} onChange={(v: any) => setFormData({...formData, firstName: v})} />
                     <Field label="Middle Name" value={formData.middleName} onChange={(v: any) => setFormData({...formData, middleName: v})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <Field label="Last Name" value={formData.lastName} onChange={(v: any) => setFormData({...formData, lastName: v})} />
-                    <Field label="Phone (Guardian)" type="tel" value={formData.parentPhone} onChange={(v: any) => setFormData({...formData, parentPhone: v})} />
+                    <Field label="Phone" type="tel" value={formData.parentPhone} onChange={(v: any) => setFormData({...formData, parentPhone: v})} />
                   </div>
                   
                   <Field label="Home Address" value={formData.homeAddress} onChange={(v: any) => setFormData({...formData, homeAddress: v})} />
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <Select label="Gender" options={['Male', 'Female']} value={formData.gender} onChange={(v: any) => setFormData({...formData, gender: v})} />
                     <Select label="Age" options={['11', '12', '13','14', '15', '16', '17', '18','19', '20']} value={formData.age} onChange={(v: any) => setFormData({...formData, age: v})} />
                   </div>
@@ -171,7 +178,7 @@ export function AdminDashboard() {
             <div className="relative group">
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-amber-500 transition-colors" size={20} />
               <input 
-                placeholder="SEARCH RECORDS OR PHONE..." 
+                placeholder="SEARCH NAME, ADDRESS, OR PHONE..." 
                 className="w-full pl-16 pr-8 py-5 bg-white rounded-[2rem] border border-slate-200 outline-none text-xs font-black tracking-widest text-[#0F172A] focus:ring-4 focus:ring-amber-500/5 transition-all uppercase" 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
@@ -182,9 +189,9 @@ export function AdminDashboard() {
                 <table className="w-full text-left">
                   <thead className="bg-slate-50/50">
                     <tr>
-                      <SortHeader label="Athlete / Contact" k="name" current={sortConfig} onSort={requestSort} />
-                      <SortHeader label="Sport/Gender" k="sport" current={sortConfig} onSort={requestSort} />
-                      <SortHeader label="Address" k="homeAddress" current={sortConfig} onSort={requestSort} />
+                      <SortHeader label="Athlete / Contact" k="firstName" current={sortConfig} onSort={requestSort} />
+                      <SortHeader label="Sport/Age" k="sport" current={sortConfig} onSort={requestSort} />
+                      <SortHeader label="Full Address" k="homeAddress" current={sortConfig} onSort={requestSort} />
                       <th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
                     </tr>
                   </thead>
@@ -192,20 +199,29 @@ export function AdminDashboard() {
                     {filteredAthletes.map((a: any) => (
                       <tr key={a.id} className="hover:bg-slate-50/50 transition-all">
                         <td className="px-8 py-6">
-                          <p className="font-black text-[#0F172A] text-xs uppercase tracking-tight">{a.name}</p>
-                          <p className="text-[10px] text-slate-400 font-bold">{a.parentPhone}</p>
+                          <p className="font-black text-[#0F172A] text-xs uppercase tracking-tight">
+                            {a.firstName} {a.middleName} {a.lastName}
+                          </p>
+                          <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                            <Phone size={10} /> {a.parentPhone || 'No Phone'}
+                          </p>
                         </td>
                         <td className="px-8 py-6">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black px-2 py-1 bg-[#0F172A] text-white rounded uppercase">{a.sport}</span>
-                            <span className="text-[9px] font-black px-2 py-1 bg-slate-100 text-slate-500 rounded uppercase">{a.gender}</span>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black px-2 py-1 bg-[#0F172A] text-white rounded uppercase">{a.sport}</span>
+                                <span className="text-[9px] font-black px-2 py-1 bg-slate-100 text-slate-500 rounded uppercase">{a.gender}</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-400">{a.age} YEARS OLD</span>
                           </div>
                         </td>
                         <td className="px-8 py-6">
-                           <p className="text-[10px] font-bold text-slate-500 uppercase max-w-[150px] truncate">{a.homeAddress}</p>
+                           <p className="text-[10px] font-bold text-slate-500 uppercase max-w-[200px] leading-relaxed">
+                            {a.homeAddress}
+                           </p>
                         </td>
                         <td className="px-8 py-6 text-right">
-                          <button onClick={() => handleDelete(a.id, a.name)} className="p-3 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all">
+                          <button onClick={() => handleDelete(a.id, `${a.firstName} ${a.lastName}`)} className="p-3 text-slate-200 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all">
                             {isDeleting === a.id ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
                           </button>
                         </td>
@@ -218,20 +234,26 @@ export function AdminDashboard() {
               {/* MOBILE ADAPTIVE VIEW */}
               <div className="md:hidden divide-y divide-slate-100">
                 {filteredAthletes.map((a: any) => (
-                  <div key={a.id} className="p-6 flex justify-between items-center">
-                    <div className="space-y-1">
-                      <p className="font-black text-[#0F172A] text-sm uppercase tracking-tight">{a.name}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">{a.parentPhone}</p>
-                      <p className="text-[9px] text-slate-400 italic truncate max-w-[200px]">{a.homeAddress}</p>
-                      <div className="flex gap-2 pt-1">
+                  <div key={a.id} className="p-6 space-y-3">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="font-black text-[#0F172A] text-sm uppercase tracking-tight">
+                                {a.firstName} {a.middleName} {a.lastName}
+                            </p>
+                            <p className="text-[10px] text-emerald-600 font-bold">{a.parentPhone}</p>
+                        </div>
+                        <button onClick={() => handleDelete(a.id, a.firstName)} className="p-3 bg-rose-50 text-rose-500 rounded-xl">
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl">
+                        <p className="text-[9px] text-slate-400 font-black uppercase mb-1">Address</p>
+                        <p className="text-[10px] text-slate-600 font-bold uppercase">{a.homeAddress}</p>
+                    </div>
+                    <div className="flex gap-2">
                         <span className="text-[9px] font-black px-2 py-0.5 bg-navy/5 text-[#0F172A] rounded uppercase">{a.sport}</span>
                         <span className="text-[9px] font-black px-2 py-0.5 bg-amber-400/10 text-amber-600 rounded uppercase">{a.age} YRS</span>
-                        <span className="text-[9px] font-black px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase">{a.gender}</span>
-                      </div>
                     </div>
-                    <button onClick={() => handleDelete(a.id, a.name)} className="p-4 bg-rose-50 text-rose-500 rounded-2xl">
-                      {isDeleting === a.id ? <Loader2 className="animate-spin" size={20} /> : <Trash2 size={20} />}
-                    </button>
                   </div>
                 ))}
               </div>
@@ -248,7 +270,6 @@ const Field = ({ label, value, onChange, type = "text" }: any) => (
   <div className="space-y-1.5">
     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">{label}</label>
     <input 
-      required 
       type={type}
       value={value} 
       onChange={(e) => onChange(e.target.value)} 
