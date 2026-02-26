@@ -14,7 +14,7 @@ import { CoachDashboard } from './pages/CoachDashboard';
 import { ScoutDashboard } from './pages/ScoutDashboard';
 import { AthletePage } from './pages/AthletePage';
 import { EventPage } from './pages/EventPage';
-
+import { MediaDashboard } from './pages/MediaDashboard';
 function AppContent() {
   const location = useLocation();
   return (
@@ -28,6 +28,7 @@ function AppContent() {
         <Route path="/scout" element={<ScoutDashboard />} />
         <Route path="/athlete/:id" element={<AthletePage />} />
         <Route path="/event" element={<EventPage />} />
+        <Route path="/media" element={<MediaDashboard />} />
       </Routes>
     </AnimatePresence>
   );

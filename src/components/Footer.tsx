@@ -159,7 +159,7 @@ export function Footer({ editMode = false }: FooterProps) {
           <div>
             <h3 className="font-heading text-lg mb-5 text-gold">Sports</h3>
             <ul className="space-y-2 text-sm text-gray-300">
-              {['🎾 Tennis', '🏀 Basketball', '🏐 Volleyball', '⚾ Baseball', '⚽ Football', '🏸 Badminton'].map((s) => (
+              {['🏀 Basketball', '🏐 Volleyball', '⚾ Baseball', '⚽ Football', '🏸 Badminton'].map((s) => (
                 <li key={s} className="hover:text-white transition-colors cursor-pointer">
                   {s}
                 </li>

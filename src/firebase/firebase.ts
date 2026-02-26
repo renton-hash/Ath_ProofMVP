@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage"; // <--- ADD THIS
 
 const firebaseConfig = {
   apiKey: "AIzaSyD6Xii4utOOWWSAEFIbDo5Xb7vFPa3qSVk",
@@ -18,9 +19,9 @@ const app = initializeApp(firebaseConfig);
 // Export services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); // <--- ADD THIS
 
 // FORCE BROWSER PERSISTENCE
-// This ensures that when an admin logs in, they stay logged in even if they refresh the page.
 setPersistence(auth, browserLocalPersistence)
   .catch((error) => {
     console.error("Auth persistence error:", error);
