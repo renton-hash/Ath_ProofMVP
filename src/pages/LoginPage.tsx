@@ -10,7 +10,8 @@ import { auth, db } from '../firebase/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-type Role = 'super-admin' | 'admin' | 'coach' | 'official';
+// FIX: Standardized IDs to use underscores to match Firestore Rules
+type Role = 'super_admin' | 'admin' | 'coach' | 'official';
 
 interface RoleConfig {
   id: Role;
@@ -24,13 +25,13 @@ interface RoleConfig {
 
 const roles: RoleConfig[] = [
   {
-    id: 'super-admin',
+    id: 'super_admin',
     title: 'Super Admin',
     description: 'System settings & security',
     icon: <Lock size={20} />,
     idLabel: 'Security Email',
     idPlaceholder: 'admin@athproof.com',
-    route: '/super-admin',
+    route: '/admin/dashboard',
   },
   {
     id: 'admin',
@@ -39,7 +40,7 @@ const roles: RoleConfig[] = [
     icon: <Shield size={20} />,
     idLabel: 'Staff Email',
     idPlaceholder: 'staff@athproof.com',
-    route: '/admin',
+    route: '/admin/dashboard',
   },
   {
     id: 'coach',
@@ -85,35 +86,43 @@ export function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
       const user = userCredential.user;
 
-      // 2. Role Verification (Fetching from Firestore 'users' collection)
-      const userRef = doc(db, 'users', user.uid);
+      // 2. Role Verification - FIX: Use 'admin_users' collection
+      const userRef = doc(db, 'admin_users', user.uid);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
         const userData = userSnap.data();
+        
+        // Check if the role in Firestore matches the one selected in UI
         if (userData.role !== selectedRole) {
-          throw new Error('Mismatched Role: You do not have permission for this portal.');
+          throw new Error('Mismatched Role: Authorized level does not match selected portal.');
         }
+
+        // 3. Update Site Context
+        setCurrentUser({
+          id: user.uid,
+          name: user.email?.split('@')[0].toUpperCase() || 'USER',
+          role: userData.role,
+          email: user.email || ''
+        });
+
+        setStep(3);
+        const targetRoute = roles.find((r) => r.id === selectedRole)?.route || '/';
+        setTimeout(() => navigate(targetRoute), 1500);
+
+      } else {
+        throw new Error('Access Denied: You are not registered in the Administrative Registry.');
       }
 
-      // 3. Update Site Context
-      setCurrentUser({
-        id: user.uid,
-        name: user.email?.split('@')[0].toUpperCase() || 'USER',
-        role: selectedRole,
-        email: user.email || ''
-      });
-
-      setStep(3);
-      const targetRoute = roles.find((r) => r.id === selectedRole)?.route || '/';
-      setTimeout(() => navigate(targetRoute), 1500);
-
     } catch (err: any) {
-      console.error("Login Error:", err.code);
-      if (err.code === 'auth/invalid-credential') {
+      console.error("Login Error:", err);
+      // Handle Firebase specific errors or custom role errors
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
         setError("Invalid email or password.");
-      } else if (err.message.includes('Mismatched Role')) {
+      } else if (err.message.includes('Mismatched Role') || err.message.includes('Access Denied')) {
         setError(err.message);
+      } else if (err.code === 'permission-denied') {
+        setError("Security Block: Profile not found in Admin database.");
       } else {
         setError("Access Denied. Please contact system admin.");
       }
@@ -124,7 +133,6 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0F172A] flex flex-col justify-center py-12 px-6 relative overflow-hidden">
-      {/* Visual background element */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-amber-500/5 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md mb-10 text-center relative z-10">
