@@ -3,7 +3,8 @@ import {
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signOut 
+  signOut,
+  User
 } from 'firebase/auth';
 import { 
   doc, 
@@ -29,7 +30,24 @@ interface SiteContent {
   navLinks: { name: string; path: string }[];
 }
 
-const SiteContext = createContext<any>(undefined);
+interface SiteContextType {
+  content: SiteContent;
+  updateContent: (newContent: Partial<SiteContent>) => Promise<void>;
+  loading: boolean;
+  athletes: any[];
+  coaches: any[];
+  officials: any[];
+  blogPosts: any[];
+  galleryImages: any[];
+  addAthlete: (data: any) => Promise<boolean>;
+  currentUser: any;
+  setCurrentUser: React.Dispatch<React.SetStateAction<any>>;
+  login: (email: string, password: string) => Promise<any>; // Simplified
+  signup: (email: string, password: string, role?: string) => Promise<any>;
+  logout: () => Promise<void>; // Simplified
+}
+
+const SiteContext = createContext<SiteContextType | undefined>(undefined);
 
 export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
   const [content, setContent] = useState<SiteContent>({
@@ -52,17 +70,15 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
   const [athletes, setAthletes] = useState<any[]>([]);
   const [coaches, setCoaches] = useState<any[]>([]);
   const [officials, setOfficials] = useState<any[]>([]);
-  const [blogPosts, setBlogPosts] = useState<any[]>([]); // Added for Media
-  const [galleryImages, setGalleryImages] = useState<any[]>([]); // Added for Media
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null); 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // A. Listen to Auth Changes & Fetch Admin Profile
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // FIX: Changed 'users' to 'admin_users' to match your security rules
           const userDoc = await getDoc(doc(db, 'admin_users', firebaseUser.uid));
           if (userDoc.exists()) {
             setCurrentUser({ uid: firebaseUser.uid, ...userDoc.data() });
@@ -76,44 +92,41 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setCurrentUser(null);
       }
+      setLoading(false);
     });
 
-    // B. Site Settings
     const unsubSettings = onSnapshot(doc(db, "settings", "siteContent"), (snapshot) => {
       if (snapshot.exists()) setContent(snapshot.data() as SiteContent);
     });
 
-    // C. Athletes
     const unsubAthletes = onSnapshot(collection(db, "athletes"), (snapshot) => {
       setAthletes(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // D. Media: Blogs
     const unsubBlogs = onSnapshot(collection(db, "blogs"), (snapshot) => {
       setBlogPosts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // E. Media: Gallery
     const unsubGallery = onSnapshot(collection(db, "gallery"), (snapshot) => {
       setGalleryImages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-      setLoading(false);
     });
 
     return () => {
-      unsubscribeAuth(); unsubSettings(); unsubAthletes(); unsubBlogs(); unsubGallery();
+      unsubscribeAuth(); 
+      unsubSettings(); 
+      unsubAthletes(); 
+      unsubBlogs(); 
+      unsubGallery();
     };
   }, []);
 
-  const login = (email: string, password: string) => signInWithEmailAndPassword(auth, email, password);
+  // Standardized functions to avoid "typeof" mismatch
+  const login = (email: string, password: string) => 
+    signInWithEmailAndPassword(auth, email, password);
 
   const signup = async (email: string, password: string, role: string = 'super_admin') => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
-    const userProfile = {
-      email,
-      role, 
-      createdAt: serverTimestamp(),
-    };
-  
+    const userProfile = { email, role, createdAt: serverTimestamp() };
     await setDoc(doc(db, 'admin_users', res.user.uid), userProfile);
     return res.user;
   };
@@ -126,23 +139,31 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addAthlete = async (athleteData: any) => {
     try {
-      await addDoc(collection(db, "athletes"), {
-        ...athleteData,
-        timestamp: serverTimestamp()
-      });
+      await addDoc(collection(db, "athletes"), { ...athleteData, timestamp: serverTimestamp() });
       return true;
     } catch (error) {
-      console.error("Add Athlete Permission Error:", error);
       return false; 
     }
   };
 
   return (
     <SiteContext.Provider value={{ 
-      content, updateContent, loading, athletes, coaches, officials, 
-      blogPosts, galleryImages, addAthlete, currentUser, login, signup, logout 
+      content, 
+      updateContent, 
+      loading, 
+      athletes, 
+      coaches, 
+      officials, 
+      blogPosts, 
+      galleryImages, 
+      addAthlete, 
+      currentUser, 
+      setCurrentUser, 
+      login, 
+      signup, 
+      logout 
     }}>
-      {!loading && children}
+      {children}
     </SiteContext.Provider>
   );
 };
