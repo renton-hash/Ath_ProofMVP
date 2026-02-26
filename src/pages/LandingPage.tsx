@@ -1,15 +1,16 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
-  Download,
-  Trophy,
   Users,
   ArrowRight,
-  School,
-  Medal,
-  Phone,
-  MapPin
+  MapPin,
+  ChevronRight,
+  Filter,
+  Lock,
+  Newspaper,
+  Image as ImageIcon,
+  LogIn // New icon for the bottom login
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CountdownTimer } from '../components/CountdownTimer';
@@ -17,253 +18,247 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { useSite } from '../context/SiteContext';
 
+// Clean list focused on training disciplines
 const sportsList = [
-  { name: 'Tennis', emoji: '🎾', color: 'border-lime-400', theme: 'text-lime-600' },
-  { name: 'Basketball', emoji: '🏀', color: 'border-orange-400', theme: 'text-orange-600' },
-  { name: 'Volleyball', emoji: '🏐', color: 'border-purple-400', theme: 'text-purple-600' },
-  { name: 'Baseball', emoji: '⚾', color: 'border-blue-400', theme: 'text-blue-600' },
-  { name: 'Football', emoji: '⚽', color: 'border-green-400', theme: 'text-green-600' },
-  { name: 'Badminton', emoji: '🏸', color: 'border-red-400', theme: 'text-red-600' }
+  { name: 'Football', emoji: '⚽', desc: 'Technical drills & match play.' },
+  { name: 'Basketball', emoji: '🏀', desc: 'Foundational hoops training.' },
+  { name: 'Volleyball', emoji: '🏐', desc: 'Skill-based serve & volley.' },
+  { name: 'Scrabbles', emoji: '🔠', desc: 'Cognitive strategy sessions.' },
+  { name: 'Table Tennis', emoji: '🏓', desc: 'Reflex and agility training.' }
+];
+
+const blogPosts = [
+  {
+    title: "Preparing for IYSDC 2026: Tips for Young Athletes",
+    excerpt: "Success starts before you step onto the field. Learn how to mentally and physically prepare...",
+    date: "Oct 12, 2025",
+    category: "Training",
+    image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&q=80"
+  },
+  {
+    title: "The Importance of Teamwork in Youth Sports",
+    excerpt: "Individual talent wins games, but teamwork and intelligence win championships...",
+    date: "Sept 28, 2025",
+    category: "Mentorship",
+    image: "https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&q=80"
+  }
+];
+
+const galleryImages = [
+  "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1519315901367-f34ff9154487?auto=format&fit=crop&q=80"
 ];
 
 const FLYER_URL = "/IfeYouth.jpg";
+const ITEMS_PER_PAGE = 10;
 
 export function LandingPage() {
   const { athletes, loading } = useSite();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSport, setFilterSport] = useState('All');
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   const stats = useMemo(() => {
     const list = athletes || [];
-    const schoolMap: Record<string, number> = {};
-    list.forEach((a: any) => {
-      if (a.homeAddress) schoolMap[a.homeAddress] = (schoolMap[a.homeAddress] || 0) + 1;
-    });
+    const sportsCounts = sportsList.reduce((acc, s) => {
+      acc[s.name] = list.filter((a: any) => a.sport === s.name).length;
+      return acc;
+    }, {} as Record<string, number>);
 
-    const topSchools = Object.entries(schoolMap)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 4);
-
-    return {
-      total: list.length,
-      topSchools,
-      sportsCounts: sportsList.reduce((acc, s) => {
-        acc[s.name] = list.filter((a: any) => a.sport === s.name).length;
-        return acc;
-      }, {} as Record<string, number>)
-    };
+    return { total: list.length, sportsCounts };
   }, [athletes]);
 
-  const filteredAthletes = (athletes || []).filter((a: any) => {
-    const q = searchQuery.toLowerCase();
-    const fullName = `${a.firstName || ''} ${a.middleName || ''} ${a.lastName || ''}`.toLowerCase();
-    const matchQ = !q || fullName.includes(q) || a.homeAddress?.toLowerCase().includes(q) || a.parentPhone?.includes(q);
-    const matchSport = filterSport === 'All' || a.sport === filterSport;
-    return matchQ && matchSport;
-  });
+  const filteredAthletes = useMemo(() => {
+    return (athletes || []).filter((a: any) => {
+      const q = searchQuery.toLowerCase();
+      const fullName = `${a.firstName || ''} ${a.middleName || ''} ${a.lastName || ''}`.toLowerCase();
+      const matchSearch = !q || 
+        fullName.includes(q) || 
+        a.homeAddress?.toLowerCase().includes(q) || 
+        a.parentPhone?.includes(q);
+      const matchSport = filterSport === 'All' || a.sport === filterSport;
+      return matchSearch && matchSport;
+    });
+  }, [athletes, searchQuery, filterSport]);
 
-  const handleDownloadFlyer = () => {
-    const link = document.createElement('a');
-    link.href = FLYER_URL;
-    link.download = 'IYSDC-2026-Flyer.jpg';
-    link.click();
-  };
+  const displayedAthletes = filteredAthletes.slice(0, visibleCount);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-navy">
+    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
       <Navbar />
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative min-h-[95vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0">
+      {/* --- HERO SECTION (Login removed) --- */}
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
           <img src={FLYER_URL} alt="IYSDC 2026" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/80 to-transparent" />
+          <div className="absolute inset-0 bg-[#0F172A]/85 mix-blend-multiply" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 w-full">
-          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl">
-            <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 p-2 pr-6 rounded-2xl mb-8">
-              <div className="bg-gold p-3 rounded-xl shadow-lg shadow-gold/20">
-                <Users className="text-navy" size={24} />
-              </div>
-              <div>
-                <p className="text-[10px] text-gold font-black uppercase tracking-widest">Verified Participants</p>
-                <p className="text-2xl text-white font-black">{loading ? '...' : stats.total}</p>
-              </div>
-            </div>
-
-            <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.9] mb-6">
-              IFE YOUTH <br /> <span className="text-gold">SPORTS</span> <br /> CAMP
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-center md:text-left">
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
+            <h1 className="text-7xl md:text-9xl font-black text-white leading-[0.85] tracking-tighter mb-8">
+              TRAIN <br /><span className="text-amber-400">HARDER.</span>
             </h1>
-            
-            <p className="text-gray-300 text-lg mb-10 max-w-lg border-l-4 border-gold pl-6">
-              Raising Champions, Inspiring Futures. Official athlete directory and tournament standings for IYSDC 2026.
+            <p className="text-slate-300 text-xl mb-12 max-w-xl leading-relaxed">
+              Ife Youth Sports Camp 2026. A dedicated environment for youth athletes to master their craft under professional mentorship.
             </p>
-
-            <div className="flex flex-wrap gap-4">
-              <Link to="/login" className="px-8 py-4 bg-gold text-navy font-black rounded-2xl hover:scale-105 transition-all flex items-center gap-3">
-                ADMIN PORTAL <ArrowRight size={20} />
-              </Link>
-              <button onClick={handleDownloadFlyer} className="px-8 py-4 bg-white/10 text-white border border-white/20 font-bold rounded-2xl hover:bg-white/20 transition-all flex items-center gap-2">
-                <Download size={20} /> FLYER
-              </button>
-            </div>
+            <a href="#directory" className="inline-flex px-12 py-5 bg-amber-400 text-[#0F172A] font-black rounded-2xl hover:bg-amber-300 transition-all gap-3 items-center">
+              VIEW TRAINEE DIRECTORY <ArrowRight size={20} />
+            </a>
           </motion.div>
         </div>
       </section>
 
       <CountdownTimer />
 
-      {/* --- QUICK STATS & TOP AREAS --- */}
-      <section className="py-12 px-6 bg-navy text-white">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1 flex flex-col justify-center">
-            <h3 className="text-gold font-black text-2xl mb-2">TOP DELEGATIONS</h3>
-            <p className="text-gray-400 text-sm">Most registered athletes by residential area.</p>
+      {/* --- TRAINING DISCIPLINES --- */}
+      <section className="py-32 px-6 bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-20">
+            <h2 className="text-5xl font-black text-slate-900 tracking-tight uppercase">Training Tracks</h2>
+            <p className="text-slate-500 font-bold uppercase tracking-widest text-sm mt-3 italic">Professional coaching in {sportsList.length} specialized areas</p>
           </div>
-          <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.topSchools.map((school, i) => (
-              <div key={i} className="bg-white/5 p-6 rounded-3xl border border-white/10 hover:border-gold/50 transition-colors">
-                <MapPin className="text-gold mb-3" size={24} />
-                <p className="text-xs text-gray-400 font-bold uppercase truncate">{school.name || 'Undefined Area'}</p>
-                <p className="text-2xl font-black">{school.count} <span className="text-sm font-normal text-gray-500">Athletes</span></p>
-              </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {sportsList.map((sport) => (
+              <motion.div 
+                key={sport.name}
+                whileHover={{ y: -8 }}
+                onClick={() => {
+                  setFilterSport(sport.name);
+                  document.getElementById('directory')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`p-8 rounded-[2.5rem] border transition-all cursor-pointer text-center ${
+                  filterSport === sport.name ? 'bg-amber-400 border-amber-500 shadow-xl' : 'bg-white border-slate-200 shadow-sm'
+                }`}
+              >
+                <div className="text-5xl mb-4">{sport.emoji}</div>
+                <h3 className="text-lg font-black text-slate-900 mb-2">{sport.name.toUpperCase()}</h3>
+                <div className={`text-2xl font-black mb-1 ${filterSport === sport.name ? 'text-white' : 'text-amber-500'}`}>
+                  {stats.sportsCounts[sport.name] || 0}
+                </div>
+                <p className="text-[9px] font-black uppercase tracking-widest opacity-60">Enrolled</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* --- SPORTS GRID --- */}
-      <section className="py-24 px-6 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-            <div>
-              <h2 className="text-5xl font-black text-navy leading-none">THE GAMES</h2>
-              <p className="text-gray-500 mt-2 font-medium uppercase tracking-widest text-sm">Official Competition Disciplines</p>
+      {/* --- CONTENT HUB --- */}
+      <section className="py-32 px-6 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-20">
+          <div className="lg:col-span-7 space-y-12">
+             <h2 className="text-4xl font-black text-slate-900 flex items-center gap-4 uppercase">
+              <Newspaper className="text-amber-500" /> Training News
+            </h2>
+            {blogPosts.map((post, i) => (
+              <div key={i} className="group cursor-pointer flex flex-col md:flex-row gap-8 items-start">
+                <div className="w-full md:w-48 h-48 rounded-[2rem] overflow-hidden shrink-0 shadow-lg border border-slate-100">
+                  <img src={post.image} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500" alt={post.title} />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-amber-500 uppercase">{post.category}</span>
+                  <h3 className="text-2xl font-black text-slate-900 mt-2 mb-3 group-hover:text-amber-500 transition-colors uppercase leading-tight">{post.title}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed mb-4">{post.excerpt}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="lg:col-span-5 space-y-12">
+            <h2 className="text-4xl font-black text-slate-900 flex items-center gap-4 uppercase">
+              <ImageIcon className="text-slate-900" /> Camp Life
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {galleryImages.map((img, i) => (
+                <div key={i} className={`rounded-[2rem] overflow-hidden h-40 shadow-md ${i === 0 ? 'col-span-2 h-64' : ''}`}>
+                  <img src={img} className="w-full h-full object-cover hover:scale-105 transition-all" alt="Training Session" />
+                </div>
+              ))}
             </div>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {sportsList.map((sport) => (
-              <div 
-                key={sport.name} 
-                onClick={() => setFilterSport(sport.name)}
-                className={`group bg-white p-8 rounded-[2rem] border-2 ${filterSport === sport.name ? 'border-gold shadow-xl' : 'border-transparent'} hover:border-gold shadow-sm hover:shadow-xl transition-all cursor-pointer text-center`}
-              >
-                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{sport.emoji}</div>
-                <h4 className="font-bold text-navy mb-1">{sport.name}</h4>
-                <p className="text-xs font-bold text-gray-400">{stats.sportsCounts[sport.name] || 0} ENROLLED</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* --- LIVE ATHLETE DIRECTORY --- */}
-      <section id="directory" className="py-24 px-6">
+      {/* --- DIRECTORY --- */}
+      <section id="directory" className="py-32 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-            <h2 className="text-4xl font-black flex items-center gap-3 text-navy">
-              <Search className="text-gold" size={32} /> ATHLETE DIRECTORY
-            </h2>
-            <div className="flex w-full md:w-auto gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div>
+              <span className="text-xs font-black text-amber-500 uppercase tracking-[0.2em] mb-4 block">Verified Enrollment List</span>
+              <h2 className="text-6xl font-black text-slate-900 tracking-tight">DIRECTORY</h2>
+            </div>
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
               <input 
                 type="text" 
-                placeholder="Search name, address, or phone..."
-                className="flex-1 md:w-96 px-6 py-4 bg-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-gold border-none"
+                placeholder="Search trainees..."
+                className="w-full pl-16 pr-6 py-5 bg-white rounded-2xl shadow-sm outline-none border-none focus:ring-2 focus:ring-amber-400 transition-all"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setVisibleCount(ITEMS_PER_PAGE);
+                }}
               />
             </div>
           </div>
 
-          <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-navy/5 border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-[3rem] shadow-xl border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                <thead className="bg-navy text-white">
-                    <tr>
-                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Athlete Information</th>
-                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Discipline</th>
-                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Contact/Location</th>
-                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-right">Verification</th>
-                    </tr>
+              <table className="w-full text-left">
+                <thead className="bg-[#0F172A] text-white">
+                  <tr>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Trainee</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Sport</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest">Home Area</th>
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                    {filteredAthletes.map((a: any, i: number) => (
-                    <motion.tr key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-8 py-5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-gold/10 text-gold flex items-center justify-center font-black text-xs">
-                            {(a.firstName || "A")[0]}
-                            </div>
-                            <div>
-                                <p className="font-black text-navy uppercase text-sm tracking-tight leading-none mb-1">
-                                    {a.firstName} {a.middleName} {a.lastName}
-                                </p>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Age Group: {a.age} YRS</p>
-                            </div>
-                        </div>
+                <tbody className="divide-y divide-slate-100">
+                  <AnimatePresence mode="popLayout">
+                    {displayedAthletes.map((a: any, i: number) => (
+                      <motion.tr layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} key={a.id || i} className="hover:bg-slate-50">
+                        <td className="px-8 py-6">
+                          <p className="font-black text-slate-900 uppercase text-sm">{a.firstName} {a.lastName}</p>
+                          <p className="text-[10px] text-slate-400 font-bold">AGE: {a.age || '—'}</p>
                         </td>
-                        <td className="px-8 py-5">
-                            <span className="px-3 py-1 bg-navy/5 text-navy text-[10px] font-black rounded-lg uppercase border border-navy/10">{a.sport}</span>
+                        <td className="px-8 py-6">
+                          <span className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-black rounded-full uppercase tracking-tighter">
+                            {a.sport}
+                          </span>
                         </td>
-                        <td className="px-8 py-5">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-gray-600">
-                                    <Phone size={12} className="text-gold" />
-                                    <span className="text-[11px] font-bold">{a.parentPhone || 'N/A'}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-gray-400">
-                                    <MapPin size={12} />
-                                    <span className="text-[10px] font-medium uppercase truncate max-w-[150px]">{a.homeAddress || 'Private Entry'}</span>
-                                </div>
-                            </div>
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase truncate max-w-[200px]">
+                            <MapPin size={12} className="text-amber-500 shrink-0" /> {a.homeAddress || 'Private'}
+                          </div>
                         </td>
-                        <td className="px-8 py-5 text-right">
-                        <span className="px-4 py-1.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">Verified</span>
-                        </td>
-                    </motion.tr>
+                      </motion.tr>
                     ))}
+                  </AnimatePresence>
                 </tbody>
-                </table>
+              </table>
             </div>
-            {filteredAthletes.length === 0 && !loading && (
-              <div className="p-20 text-center text-gray-400 font-bold uppercase tracking-widest">No athletes found in directory</div>
+
+            {visibleCount < filteredAthletes.length && (
+              <div className="p-8 bg-slate-50 text-center">
+                <button 
+                  onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
+                  className="px-10 py-4 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase hover:shadow-lg transition-all"
+                >
+                  Load More Profiles
+                </button>
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* --- STANDINGS PREVIEW --- */}
-      <section className="py-24 px-6 bg-navy relative overflow-hidden">
-        <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-          <Trophy size={400} />
-        </div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <Medal className="text-gold mx-auto mb-4" size={48} />
-            <h2 className="text-5xl font-black text-white">TOURNAMENT STANDINGS</h2>
-            <p className="text-gold font-bold tracking-[0.3em] mt-2">REAL-TIME UPDATES COMING FEB 2026</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {['Gold', 'Silver', 'Bronze'].map((m) => (
-              <div key={m} className="bg-white/5 backdrop-blur-sm border border-white/10 p-10 rounded-[3rem] text-center">
-                <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${
-                  m === 'Gold' ? 'bg-gold text-navy' : m === 'Silver' ? 'bg-gray-300 text-navy' : 'bg-orange-700 text-white'
-                }`}>
-                  <Trophy size={32} />
-                </div>
-                <h3 className="text-2xl font-black text-white mb-2">{m.toUpperCase()}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Final results will be published here in real-time by camp officials.
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* --- DISCREET ADMIN FOOTER --- */}
+      <section className="py-12 border-t border-slate-100 flex flex-col items-center bg-white">
+        <Link to="/login" className="flex items-center gap-2 text-[10px] font-black text-slate-300 hover:text-amber-500 transition-colors uppercase tracking-[0.3em]">
+          <LogIn size={14} /> Admin Access Only
+        </Link>
       </section>
 
       <Footer />

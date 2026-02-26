@@ -34,7 +34,7 @@ export function AdminDashboard() {
 
   // --- EXPORT: CSV ---
   const downloadCSV = () => {
-    const headers = ["First Name", "Middle Name", "Last Name", "Sport", "Age", "Gender", "Phone", "Address", "Registration Date"];
+    const headers = ["First Name", "Middle Name", "Last Name", "Sport", "Age", "Gender", "Phone(Guardian)", "Address", "Registration Date"];
     const rows = (filteredAthletes || []).map(a => [
       a.firstName || '', 
       a.middleName || '', 
@@ -189,7 +189,7 @@ export function AdminDashboard() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Last Name" required value={formData.lastName} onChange={(v: string) => setFormData({...formData, lastName: v})} />
-                    <Field label="Phone" type="tel" required value={formData.parentPhone} onChange={(v: string) => setFormData({...formData, parentPhone: v})} />
+                    <Field label="Phone(Guardian)" type="tel" required value={formData.parentPhone} onChange={(v: string) => setFormData({...formData, parentPhone: v})} />
                   </div>
                   <Field label="Home Address" required value={formData.homeAddress} onChange={(v: string) => setFormData({...formData, homeAddress: v})} />
                   
