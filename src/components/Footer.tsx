@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Twitter,
-  Instagram,
   Facebook,
   Youtube,
   Shield,
@@ -14,16 +13,11 @@ import {
   X
 } from 'lucide-react';
 import { useSite } from '../context/SiteContext';
+import instagramImg from '../assets/Slider/Instagram.jpg'; 
 
-// 1. Define interfaces so TypeScript doesn't throw "never" errors
 interface SocialLink {
   platform: string;
   url: string;
-}
-
-interface Partner {
-  name: string;
-  initials: string;
 }
 
 interface FooterProps {
@@ -31,10 +25,7 @@ interface FooterProps {
 }
 
 export function Footer({ editMode = false }: FooterProps) {
-  // 2. Add a fallback to prevent destructuring errors if context is null
   const context = useSite();
-  
-  // Safety check: If context is somehow missing, render nothing instead of crashing
   if (!context) return null;
 
   const { content, updateContent } = context;
@@ -54,12 +45,11 @@ export function Footer({ editMode = false }: FooterProps) {
     setEditing(null);
   };
 
-  // Helper Component for Editable Text
   const EditableText = ({
     field,
     value,
     className
-  }: { field: string; value: string; className?: string; }) =>
+  }: { field: string; value: string; className?: string }) =>
     editing === field ? (
       <span className="flex items-center gap-1">
         <input
@@ -77,7 +67,7 @@ export function Footer({ editMode = false }: FooterProps) {
       </span>
     ) : (
       <span className={`${className || ''} flex items-center gap-1 group`}>
-        {value || "Add Information"} 
+        {value || "Add Information"}
         {editMode && (
           <button
             onClick={() => startEdit(field, value)}
@@ -92,16 +82,17 @@ export function Footer({ editMode = false }: FooterProps) {
   const socialIcons: Record<string, React.ReactNode> = {
     Facebook: <Facebook size={18} />,
     Twitter: <Twitter size={18} />,
-    Instagram: <Instagram size={18} />,
     YouTube: <Youtube size={18} />
   };
 
   return (
     <footer className="bg-navy text-white pt-14 pb-6 border-t-4 border-gold">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
+
+        {/* Top Grid Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           
-          {/* Brand */}
+          {/* Brand Section */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <div className="bg-gold p-1.5 rounded-lg">
@@ -111,24 +102,12 @@ export function Footer({ editMode = false }: FooterProps) {
                 {content?.logoText || 'IYSDI'}
               </span>
             </div>
+
             <EditableText
               field="footerTagline"
               value={content?.footerTagline || ''}
               className="text-gray-300 text-sm leading-relaxed block"
             />
-
-            <div className="flex space-x-3">
-              {/* 3. Safety Check: Use optional chaining ?.map */}
-              {content?.socialLinks?.map((s: SocialLink) => (
-                <a
-                  key={s.platform}
-                  href={s.url}
-                  className="bg-white/10 p-2 rounded-full text-white hover:bg-gold hover:text-navy transition-all"
-                >
-                  {socialIcons[s.platform] || <Twitter size={18} />}
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -139,7 +118,6 @@ export function Footer({ editMode = false }: FooterProps) {
                 { to: '/', text: 'Home' },
                 { to: '/#about', text: 'About IYSDI' },
                 { to: '/event', text: 'Event Schedule' },
-                { to: '/#athletes', text: 'Find Athletes' },
                 { to: '/login', text: 'Portal Login' }
               ].map((l) => (
                 <li key={l.to}>
@@ -187,21 +165,45 @@ export function Footer({ editMode = false }: FooterProps) {
           </div>
         </div>
 
-        {/* Partners Row */}
-        <div className="border-t border-white/10 pt-8 mb-6">
-          <p className="text-center text-xs text-gray-500 uppercase tracking-widest mb-4">Official Partners</p>
-          <div className="flex flex-wrap justify-center gap-6">
-            {content?.partners?.map((p: Partner) => (
-              <div key={p.name} className="flex items-center gap-2 text-gray-400 hover:text-gold transition-colors">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-gold">
-                  {(p.initials || p.name).substring(0, 2)}
-                </div>
-                <span className="text-xs font-medium">{p.name}</span>
-              </div>
-            ))}
+        {/* ✅ Social Media Section (Now at Bottom with Heading) */}
+        <div className="border-t border-white/10 pt-8 pb-6 text-center">
+          <h3 className="font-heading text-lg text-gold mb-4">Follow Us</h3>
+
+          <div className="flex justify-center space-x-4">
+            
+            {/* Instagram First */}
+            <a
+              href="https://www.instagram.com/ifysdi_?igsh=NHBwM2w3bHAxcGQ1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/10 p-3 rounded-full hover:bg-gradient-to-tr hover:from-pink-500 hover:to-yellow-400 transition-all flex items-center justify-center"
+              title="Follow us on Instagram"
+            >
+              <img
+                src={instagramImg}
+                alt="Instagram"
+                className="h-5 w-5 object-contain"
+              />
+            </a>
+
+            {/* Other Dynamic Links */}
+            {content?.socialLinks
+              ?.filter((s: SocialLink) => s.platform !== 'Instagram')
+              .map((s: SocialLink) => (
+                <a
+                  key={s.platform}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white/10 p-3 rounded-full text-white hover:bg-gold hover:text-navy transition-all flex items-center justify-center"
+                >
+                  {socialIcons[s.platform] || <Twitter size={18} />}
+                </a>
+              ))}
           </div>
         </div>
 
+        {/* Bottom Row */}
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
           <EditableText
             field="copyrightText"
@@ -209,10 +211,15 @@ export function Footer({ editMode = false }: FooterProps) {
             className="text-gray-400 text-xs"
           />
           <div className="flex space-x-5 text-xs text-gray-400">
-            <Link to="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link to="#" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link to="#" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="#" className="hover:text-white transition-colors">
+              Terms of Service
+            </Link>
           </div>
         </div>
+
       </div>
     </footer>
   );
