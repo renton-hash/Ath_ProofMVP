@@ -1,34 +1,26 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ArrowRight,
-  LogIn
-} from 'lucide-react';
+import { ArrowRight, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { useSite } from '../context/SiteContext';
 
-import Slide1 from '../Assets/Slider/DSC_5145.jpg';
-import Slide2 from '../Assets/Slider/DSC_5175.jpg';
-import Slide3 from '../Assets/Slider/DSC_5269.jpg';
-import Slide4 from '../Assets/Slider/DSC_5304.jpg';
-import Slide5 from '../Assets/Slider/DSC_5314.jpg';
 const heroSlides = [
-  { url: Slide1, alt: 'Training Session' },
-  { url: Slide2, alt: 'Competitions' },
-  { url: Slide3, alt: 'Team Building' },
-  { url: Slide4, alt: 'The Making' },
-  { url: Slide5, alt: 'The Future' },
+  { url: '/slider/DSC_5145.jpg', alt: 'Training Session' },
+  { url: '/slider/DSC_5175.jpg', alt: 'Competitions' },
+  { url: '/slider/DSC_5269.jpg', alt: 'Team Building' },
+  { url: '/slider/DSC_5304.jpg', alt: 'The Making' },
+  { url: '/slider/DSC_5314.jpg', alt: 'The Future' },
 ];
 
 export function LandingPage() {
-  const { blogPosts } = useSite();
+  const { blogPosts = [] } = useSite(); // ✅ default to empty array
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
 
-  // Auto-slide
+  // Auto-slide every 5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setDirection(1);
@@ -46,14 +38,14 @@ export function LandingPage() {
 
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 400 : -400
+      x: direction > 0 ? 400 : -400,
     }),
     center: {
-      x: 0
+      x: 0,
     },
     exit: (direction: number) => ({
-      x: direction > 0 ? -400 : 400
-    })
+      x: direction > 0 ? -400 : 400,
+    }),
   };
 
   return (
@@ -63,7 +55,7 @@ export function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative min-h-[90vh] flex items-center bg-[#0F172A] overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <AnimatePresence mode="wait" custom={direction}>
+          <AnimatePresence initial={false} custom={direction}>
             <motion.img
               key={currentSlide}
               src={heroSlides[currentSlide].url}
@@ -72,10 +64,7 @@ export function LandingPage() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{
-                x: { type: "spring", stiffness: 90, damping: 25 },
-                opacity: { duration: 0.6 }
-              }}
+              transition={{ x: { type: 'spring', stiffness: 90, damping: 25 } }}
               className="absolute w-full h-full object-cover"
               alt={heroSlides[currentSlide].alt}
             />
@@ -118,14 +107,38 @@ export function LandingPage() {
               key={idx}
               onClick={() => handleDotClick(idx)}
               className={`h-1.5 transition-all duration-500 rounded-full ${
-                currentSlide === idx
-                  ? 'w-12 bg-amber-400'
-                  : 'w-4 bg-white/30'
+                currentSlide === idx ? 'w-12 bg-amber-400' : 'w-4 bg-white/30'
               }`}
             />
           ))}
         </div>
       </section>
+
+      {/* BLOG POSTS SECTION */}
+      {blogPosts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-12">
+          <h2 className="text-4xl font-black mb-8">Latest Articles</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {blogPosts.map((post) => (
+              <div key={post.id} className="bg-white shadow-lg rounded-xl p-6">
+                <img
+                  src={post.image || '/slider/DSC_5145.jpg'}
+                  alt={post.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+                <h3 className="font-bold text-xl mb-2">{post.title}</h3>
+                <p className="text-slate-600 text-sm">{post.excerpt}</p>
+                <Link
+                  to={`/blog/${post.slug}`}
+                  className="mt-3 inline-block text-amber-400 font-semibold hover:underline"
+                >
+                  Read More
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <CountdownTimer />
 

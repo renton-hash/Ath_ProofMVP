@@ -13,7 +13,6 @@ import {
   X
 } from 'lucide-react';
 import { useSite } from '../context/SiteContext';
-import instagramImg from '../assets/Slider/Instagram.jpg'; 
 
 interface SocialLink {
   platform: string;
@@ -39,17 +38,11 @@ export function Footer({ editMode = false }: FooterProps) {
   };
 
   const saveEdit = (field: string) => {
-    updateContent({
-      [field]: tempVal
-    } as any);
+    updateContent({ [field]: tempVal } as any);
     setEditing(null);
   };
 
-  const EditableText = ({
-    field,
-    value,
-    className
-  }: { field: string; value: string; className?: string }) =>
+  const EditableText = ({ field, value, className }: { field: string; value: string; className?: string }) =>
     editing === field ? (
       <span className="flex items-center gap-1">
         <input
@@ -67,7 +60,7 @@ export function Footer({ editMode = false }: FooterProps) {
       </span>
     ) : (
       <span className={`${className || ''} flex items-center gap-1 group`}>
-        {value || "Add Information"}
+        {value || 'Add Information'}
         {editMode && (
           <button
             onClick={() => startEdit(field, value)}
@@ -88,19 +81,15 @@ export function Footer({ editMode = false }: FooterProps) {
   return (
     <footer className="bg-navy text-white pt-14 pb-6 border-t-4 border-gold">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Top Grid Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-          
           {/* Brand Section */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
               <div className="bg-gold p-1.5 rounded-lg">
                 <Shield className="h-5 w-5 text-navy" />
               </div>
-              <span className="font-heading text-xl text-white">
-                {content?.logoText || 'IYSDI'}
-              </span>
+              <span className="font-heading text-xl text-white">{content?.logoText || 'IYSDI'}</span>
             </div>
 
             <EditableText
@@ -165,13 +154,12 @@ export function Footer({ editMode = false }: FooterProps) {
           </div>
         </div>
 
-        {/* ✅ Social Media Section (Now at Bottom with Heading) */}
+        {/* Social Media Section */}
         <div className="border-t border-white/10 pt-8 pb-6 text-center">
           <h3 className="font-heading text-lg text-gold mb-4">Follow Us</h3>
 
           <div className="flex justify-center space-x-4">
-            
-            {/* Instagram First */}
+            {/* Instagram */}
             <a
               href="https://www.instagram.com/ifysdi_?igsh=NHBwM2w3bHAxcGQ1"
               target="_blank"
@@ -179,14 +167,11 @@ export function Footer({ editMode = false }: FooterProps) {
               className="bg-white/10 p-3 rounded-full hover:bg-gradient-to-tr hover:from-pink-500 hover:to-yellow-400 transition-all flex items-center justify-center"
               title="Follow us on Instagram"
             >
-              <img
-                src={instagramImg}
-                alt="Instagram"
-                className="h-5 w-5 object-contain"
-              />
+              {/* ✅ Production-safe path */}
+              <img src="/images/Instagram.jpg" alt="Instagram" className="h-5 w-5 object-contain" />
             </a>
 
-            {/* Other Dynamic Links */}
+            {/* Other Social Links */}
             {content?.socialLinks
               ?.filter((s: SocialLink) => s.platform !== 'Instagram')
               .map((s: SocialLink) => (
@@ -219,7 +204,6 @@ export function Footer({ editMode = false }: FooterProps) {
             </Link>
           </div>
         </div>
-
       </div>
     </footer>
   );
