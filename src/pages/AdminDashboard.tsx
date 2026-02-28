@@ -48,7 +48,7 @@ export function AdminDashboard() {
     parentPhone: '', gender: 'Male', dob: '', photo: '', sport: 'Football'
   });
 
-  const sportsList = ['Football', 'Basketball', 'Athletics', 'Swimming', 'Tennis', 'Volleyball', 'Combat Sports'];
+  const sportsList = ['Football', 'Basketball', 'Table Tennis', 'Volleyball', 'Scrabbles'];
 
   const processImage = (file: File, callback: (base64: string) => void) => {
     const reader = new FileReader();
