@@ -12,8 +12,9 @@ export function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
 
- 
   const HERO_SLIDES = [
+    { url: '/images/DSC_6151.jpg', alt: ' ' },
+    { url: '/images/DSC_5272.jpg', alt: ' ' },
     { url: '/images/Slider/DSC_5145.jpg', alt: 'High Performance Training' },
     { url: '/images/Slider/DSC_5175.jpg', alt: 'Next Gen Champions' },
     { url: '/images/Slider/DSC_5269.jpg', alt: 'Ife Youth Sports Camp' },
@@ -21,15 +22,14 @@ export function LandingPage() {
     { url: '/images/Slider/DSC_5314.jpg', alt: 'Motivation and Grit' }
   ];
 
-  
   const STATIC_GALLERY = [
-    { url: '/images/Slider/DSC_5145.jpg', caption: 'Tactical Drills' },
+    { url: '/images/DSC_6151.jpg', caption: 'Tactical Drills' },
     { url: '/images/Slider/DSC_5175.jpg', caption: 'Team Coordination' },
-    { url: '/images/Slider/DSC_5269.jpg', caption: 'Endurance Training' },
+    { url: '/images/DSC_5882.jpg', caption: 'Endurance Training' },
     { url: '/images/Slider/DSC_5304.jpg', caption: 'Game Strategy' },
     { url: '/images/Slider/DSC_5314.jpg', caption: 'Elite Performance' },
-    { url: '/images/Slider/DSC_5320.jpg', caption: 'Focus & Power' }, // Reusing or adding new filenames
-    { url: '/images/Slider/DSC_5175.jpg', caption: 'Skill Mastery' },
+    { url: '/images/Slider/DSC_5320.jpg', caption: 'Focus & Power' },
+    { url: '/images/DSC_5655.jpg', caption: 'Skill Mastery' },
     { url: '/images/Slider/DSC_5269.jpg', caption: 'Victory Mindset' }
   ];
 
@@ -48,17 +48,23 @@ export function LandingPage() {
   };
 
   const slideVariants = {
-    enter: (direction: number) => ({ x: direction > 0 ? 1000 : -1000, opacity: 0 }),
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
     center: { x: 0, opacity: 1 },
-    exit: (direction: number) => ({ x: direction > 0 ? -1000 : 1000, opacity: 0 }),
+    exit: (direction: number) => ({
+      x: direction > 0 ? -1000 : 1000,
+      opacity: 0
+    }),
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
+    <div className="min-h-screen bg-white font-sans text-black antialiased">
       <Navbar />
 
       {/* HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center bg-[#0F172A] overflow-hidden">
+      <section className="relative min-h-[90vh] flex items-center bg-[#0B1C2D] overflow-hidden">
         <div className="absolute inset-0 z-0">
           <AnimatePresence initial={false} custom={direction}>
             <motion.img
@@ -69,24 +75,30 @@ export function LandingPage() {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ x: { type: 'spring', stiffness: 100, damping: 30 }, opacity: { duration: 0.5 } }}
-              className="absolute w-full h-full object-cover opacity-60"
+              transition={{
+                x: { type: 'spring', stiffness: 100, damping: 30 },
+                opacity: { duration: 0.5 }
+              }}
+              className="absolute w-full h-full object-cover opacity-75"
               alt={HERO_SLIDES[currentSlide].alt}
             />
           </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/60 to-transparent" />
+
+          {/* Deep Navy Overlay (Not Gray) */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0B1C2D] via-[#0B1C2D]/70 to-transparent" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
           <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="text-7xl md:text-[10rem] font-black text-white leading-[0.8] tracking-tighter mb-8 uppercase italic">
+            <h1 className="text-6xl md:text-8xl font-extrabold text-white leading-tight tracking-tight mb-6">
               Train <br />
               <span className="text-amber-400">Harder.</span>
             </h1>
-            <p className="text-slate-300 text-xl md:text-2xl mb-12 max-w-2xl font-medium leading-relaxed">
-              Ife Youth Sports Development Camp 2026. High-performance training for the next generation of champions.
+
+            <p className="text-white text-lg md:text-xl mb-10 max-w-2xl leading-relaxed">
+              Ife Youth Sports Development Camp 2026.
+              High-performance training for the next generation of champions.
             </p>
-            
           </motion.div>
         </div>
 
@@ -97,7 +109,9 @@ export function LandingPage() {
               key={idx}
               onClick={() => handleDotClick(idx)}
               className={`h-1.5 transition-all duration-500 rounded-full ${
-                currentSlide === idx ? 'w-12 bg-amber-400' : 'w-4 bg-white/30'
+                currentSlide === idx
+                  ? 'w-12 bg-amber-400'
+                  : 'w-4 bg-white/50'
               }`}
             />
           ))}
@@ -109,35 +123,46 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-4">
             <div>
-              <p className="text-amber-500 font-black uppercase tracking-[0.3em] text-[10px] mb-2 underline decoration-2 underline-offset-4">The Camp Experience</p>
-              <h2 className="text-6xl font-black italic uppercase tracking-tighter">Gallery</h2>
+              <p className="text-amber-500 font-semibold uppercase tracking-widest text-xs mb-2">
+                The Camp Experience
+              </p>
+              <h2 className="text-5xl md:text-6xl font-extrabold tracking-tight text-black">
+                Gallery
+              </h2>
             </div>
-            <Link 
-              to="/gallery" 
-              className="group flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-black uppercase text-xs hover:bg-amber-500 transition-all shadow-lg"
+
+            <Link
+              to="/gallery"
+              className="group flex items-center gap-3 px-6 py-3 bg-[#0B1C2D] text-white rounded-full font-semibold text-sm hover:bg-amber-500 transition-all shadow-md"
             >
-              Full Gallery <ImageIcon size={16} className="group-hover:rotate-12 transition-transform" />
+              View Full Gallery
+              <ImageIcon
+                size={16}
+                className="group-hover:rotate-12 transition-transform"
+              />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             {STATIC_GALLERY.map((img, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="relative aspect-square overflow-hidden rounded-[2.5rem] bg-slate-100 group shadow-md hover:shadow-2xl transition-shadow"
+                transition={{ delay: idx * 0.08, duration: 0.6 }}
+                className="relative aspect-square overflow-hidden rounded-3xl group shadow-lg hover:shadow-2xl transition-all duration-500"
               >
-                <img 
-                  src={img.url} 
-                  alt={img.caption} 
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-110"
+                <img
+                  src={img.url}
+                  alt={img.caption}
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all p-8 flex flex-col justify-end text-center">
-                  <p className="text-white text-[10px] font-black uppercase italic tracking-[0.2em]">
+
+                {/* Deep Navy Overlay Instead of Gray */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1C2D]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end p-6">
+                  <p className="text-white text-sm font-semibold tracking-wide">
                     {img.caption}
                   </p>
                 </div>
