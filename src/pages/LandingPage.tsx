@@ -84,7 +84,7 @@ export function LandingPage() {
               <span className="text-amber-400">Harder.</span>
             </h1>
             <p className="text-slate-300 text-xl md:text-2xl mb-12 max-w-2xl font-medium leading-relaxed">
-              Ife Youth Sports Camp 2026. High-performance training for the next generation of champions.
+              Ife Youth Sports Development Camp 2026. High-performance training for the next generation of champions.
             </p>
             
           </motion.div>
