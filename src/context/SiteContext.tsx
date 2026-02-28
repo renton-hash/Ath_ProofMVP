@@ -44,7 +44,7 @@ const SiteContext = createContext<SiteContextType | undefined>(undefined);
 
 export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
   const [content, setContent] = useState<SiteContent>({
-    logoText: "IYSDI",
+    logoText: "IYSDC",
     announcementBar: "Welcome to IYSDI",
     footerTagline: "",
     socialLinks: [],
@@ -52,7 +52,7 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
     footerAddress: "",
     footerEmail: "",
     footerPhone: "",
-    copyrightText: "© 2026 IYSDI",
+    copyrightText: "© 2026 IYSDC",
     navLinks: [
       { name: "Home", path: "/" },
       { name: "About", path: "/about" },

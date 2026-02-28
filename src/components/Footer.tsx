@@ -192,7 +192,7 @@ export function Footer({ editMode = false }: FooterProps) {
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
           <EditableText
             field="copyrightText"
-            value={content?.copyrightText || '© 2026 IYSDI'}
+            value={content?.copyrightText || '© 2026 IYSDC'}
             className="text-gray-400 text-xs"
           />
           <div className="flex space-x-5 text-xs text-gray-400">
