@@ -6,6 +6,7 @@ import {
 } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SiteProvider } from './context/SiteContext';
+
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { SuperAdminDashboard } from './pages/SuperAdminDashboard';
@@ -15,6 +16,9 @@ import { ScoutDashboard } from './pages/ScoutDashboard';
 import { AthletePage } from './pages/AthletePage';
 import { EventPage } from './pages/EventPage';
 import { MediaDashboard } from './pages/MediaDashboard';
+import { BlogPage } from './pages/Blog';
+import { GalleryPage } from './pages/Gallery';
+
 function AppContent() {
   const location = useLocation();
   return (
@@ -29,6 +33,9 @@ function AppContent() {
         <Route path="/athlete/:id" element={<AthletePage />} />
         <Route path="/event" element={<EventPage />} />
         <Route path="/media" element={<MediaDashboard />} />
+      
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
       </Routes>
     </AnimatePresence>
   );
@@ -37,7 +44,6 @@ function AppContent() {
 export function App() {
   return (
     <SiteProvider>
-      {/* Added the future flags here to silence the warnings */}
       <Router 
         future={{ 
           v7_startTransition: true, 

@@ -3,17 +3,10 @@ import {
   onAuthStateChanged, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signOut,
-  User
+  signOut 
 } from 'firebase/auth';
 import { 
-  doc, 
-  onSnapshot, 
-  collection, 
-  setDoc, 
-  addDoc,
-  getDoc,
-  serverTimestamp 
+  doc, onSnapshot, collection, setDoc, addDoc, getDoc, serverTimestamp, query, orderBy 
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/firebase';
 
@@ -42,9 +35,9 @@ interface SiteContextType {
   addAthlete: (data: any) => Promise<boolean>;
   currentUser: any;
   setCurrentUser: React.Dispatch<React.SetStateAction<any>>;
-  login: (email: string, password: string) => Promise<any>; // Simplified
+  login: (email: string, password: string) => Promise<any>;
   signup: (email: string, password: string, role?: string) => Promise<any>;
-  logout: () => Promise<void>; // Simplified
+  logout: () => Promise<void>;
 }
 
 const SiteContext = createContext<SiteContextType | undefined>(undefined);
@@ -72,19 +65,16 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
   const [officials, setOfficials] = useState<any[]>([]);
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [galleryImages, setGalleryImages] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null); 
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Track auth changes
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
           const userDoc = await getDoc(doc(db, 'admin_users', firebaseUser.uid));
-          if (userDoc.exists()) {
-            setCurrentUser({ uid: firebaseUser.uid, ...userDoc.data() });
-          } else {
-            setCurrentUser(firebaseUser);
-          }
+          setCurrentUser(userDoc.exists() ? { uid: firebaseUser.uid, ...userDoc.data() } : firebaseUser);
         } catch (error) {
           console.error("Auth Profile Error:", error);
           setCurrentUser(firebaseUser);
@@ -95,34 +85,39 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
+    // Track site content
     const unsubSettings = onSnapshot(doc(db, "settings", "siteContent"), (snapshot) => {
       if (snapshot.exists()) setContent(snapshot.data() as SiteContent);
     });
 
+    // Athletes
     const unsubAthletes = onSnapshot(collection(db, "athletes"), (snapshot) => {
       setAthletes(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    const unsubBlogs = onSnapshot(collection(db, "blogs"), (snapshot) => {
+    // Blogs
+    const blogQuery = query(collection(db, "blogs"), orderBy("createdAt", "desc"));
+    const unsubBlogs = onSnapshot(blogQuery, (snapshot) => {
       setBlogPosts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    const unsubGallery = onSnapshot(collection(db, "gallery"), (snapshot) => {
+    // Gallery
+    const galleryQuery = query(collection(db, "gallery"), orderBy("createdAt", "desc"));
+    const unsubGallery = onSnapshot(galleryQuery, (snapshot) => {
       setGalleryImages(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
     return () => {
-      unsubscribeAuth(); 
-      unsubSettings(); 
-      unsubAthletes(); 
-      unsubBlogs(); 
+      unsubscribeAuth();
+      unsubSettings();
+      unsubAthletes();
+      unsubBlogs();
       unsubGallery();
     };
   }, []);
 
-  // Standardized functions to avoid "typeof" mismatch
-  const login = (email: string, password: string) => 
-    signInWithEmailAndPassword(auth, email, password);
+  // Auth functions
+  const login = (email: string, password: string) => signInWithEmailAndPassword(auth, email, password);
 
   const signup = async (email: string, password: string, role: string = 'super_admin') => {
     const res = await createUserWithEmailAndPassword(auth, email, password);
@@ -133,35 +128,38 @@ export const SiteProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = () => signOut(auth);
 
+  // Update content
   const updateContent = async (newContent: Partial<SiteContent>) => {
     await setDoc(doc(db, "settings", "siteContent"), newContent, { merge: true });
   };
 
+  // Add athlete
   const addAthlete = async (athleteData: any) => {
     try {
       await addDoc(collection(db, "athletes"), { ...athleteData, timestamp: serverTimestamp() });
       return true;
     } catch (error) {
-      return false; 
+      console.error(error);
+      return false;
     }
   };
 
   return (
-    <SiteContext.Provider value={{ 
-      content, 
-      updateContent, 
-      loading, 
-      athletes, 
-      coaches, 
-      officials, 
-      blogPosts, 
-      galleryImages, 
-      addAthlete, 
-      currentUser, 
-      setCurrentUser, 
-      login, 
-      signup, 
-      logout 
+    <SiteContext.Provider value={{
+      content,
+      updateContent,
+      loading,
+      athletes,
+      coaches,
+      officials,
+      blogPosts,
+      galleryImages,
+      addAthlete,
+      currentUser,
+      setCurrentUser,
+      login,
+      signup,
+      logout
     }}>
       {children}
     </SiteContext.Provider>

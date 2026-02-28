@@ -1,34 +1,45 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, LogIn } from 'lucide-react';
+import { ArrowRight, ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// Components
 import { CountdownTimer } from '../components/CountdownTimer';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import { useSite } from '../context/SiteContext';
-
-const heroSlides = [
-  { url: '/slider/DSC_5145.jpg', alt: 'Training Session' },
-  { url: '/slider/DSC_5175.jpg', alt: 'Competitions' },
-  { url: '/slider/DSC_5269.jpg', alt: 'Team Building' },
-  { url: '/slider/DSC_5304.jpg', alt: 'The Making' },
-  { url: '/slider/DSC_5314.jpg', alt: 'The Future' },
-];
 
 export function LandingPage() {
-  const { blogPosts = [] } = useSite(); // ✅ default to empty array
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(1);
 
-  // Auto-slide every 5 seconds
+ 
+  const HERO_SLIDES = [
+    { url: '/images/Slider/DSC_5145.jpg', alt: 'High Performance Training' },
+    { url: '/images/Slider/DSC_5175.jpg', alt: 'Next Gen Champions' },
+    { url: '/images/Slider/DSC_5269.jpg', alt: 'Ife Youth Sports Camp' },
+    { url: '/images/Slider/DSC_5304.jpg', alt: 'Level Up' },
+    { url: '/images/Slider/DSC_5314.jpg', alt: 'Motivation and Grit' }
+  ];
+
+  
+  const STATIC_GALLERY = [
+    { url: '/images/Slider/DSC_5145.jpg', caption: 'Tactical Drills' },
+    { url: '/images/Slider/DSC_5175.jpg', caption: 'Team Coordination' },
+    { url: '/images/Slider/DSC_5269.jpg', caption: 'Endurance Training' },
+    { url: '/images/Slider/DSC_5304.jpg', caption: 'Game Strategy' },
+    { url: '/images/Slider/DSC_5314.jpg', caption: 'Elite Performance' },
+    { url: '/images/Slider/DSC_5320.jpg', caption: 'Focus & Power' }, // Reusing or adding new filenames
+    { url: '/images/Slider/DSC_5175.jpg', caption: 'Skill Mastery' },
+    { url: '/images/Slider/DSC_5269.jpg', caption: 'Victory Mindset' }
+  ];
+
   useEffect(() => {
     const timer = setInterval(() => {
       setDirection(1);
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      setCurrentSlide(prev => (prev + 1) % HERO_SLIDES.length);
     }, 5000);
-
     return () => clearInterval(timer);
-  }, []);
+  }, [HERO_SLIDES.length]);
 
   const handleDotClick = (index: number) => {
     if (index === currentSlide) return;
@@ -37,15 +48,9 @@ export function LandingPage() {
   };
 
   const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 400 : -400,
-    }),
-    center: {
-      x: 0,
-    },
-    exit: (direction: number) => ({
-      x: direction > 0 ? -400 : 400,
-    }),
+    enter: (direction: number) => ({ x: direction > 0 ? 1000 : -1000, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (direction: number) => ({ x: direction > 0 ? -1000 : 1000, opacity: 0 }),
   };
 
   return (
@@ -58,51 +63,41 @@ export function LandingPage() {
           <AnimatePresence initial={false} custom={direction}>
             <motion.img
               key={currentSlide}
-              src={heroSlides[currentSlide].url}
+              src={HERO_SLIDES[currentSlide].url}
               custom={direction}
               variants={slideVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ x: { type: 'spring', stiffness: 90, damping: 25 } }}
-              className="absolute w-full h-full object-cover"
-              alt={heroSlides[currentSlide].alt}
+              transition={{ x: { type: 'spring', stiffness: 100, damping: 30 }, opacity: { duration: 0.5 } }}
+              className="absolute w-full h-full object-cover opacity-60"
+              alt={HERO_SLIDES[currentSlide].alt}
             />
           </AnimatePresence>
-
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/60 to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.03 }}
-            className="max-w-4xl"
-          >
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
+          <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }}>
             <h1 className="text-7xl md:text-[10rem] font-black text-white leading-[0.8] tracking-tighter mb-8 uppercase italic">
               Train <br />
               <span className="text-amber-400">Harder.</span>
             </h1>
-
             <p className="text-slate-300 text-xl md:text-2xl mb-12 max-w-2xl font-medium leading-relaxed">
               Ife Youth Sports Camp 2026. High-performance training for the next generation of champions.
             </p>
-
-            <div className="flex flex-wrap gap-4">
-              <Link
-                to="/registration"
-                className="px-10 py-5 bg-white text-slate-900 font-black rounded-2xl hover:bg-amber-400 transition-all flex items-center gap-3 shadow-2xl uppercase tracking-tight"
-              >
-                Register Now <ArrowRight size={20} />
-              </Link>
-            </div>
+            <Link
+              to="/registration"
+              className="inline-flex items-center gap-4 px-10 py-5 bg-white text-slate-900 font-black rounded-2xl hover:bg-amber-400 transition-all uppercase tracking-tight shadow-2xl"
+            >
+              Register Now <ArrowRight size={20} />
+            </Link>
           </motion.div>
         </div>
 
-        {/* Navigation Dots */}
+        {/* Dots */}
         <div className="absolute bottom-10 right-10 z-20 flex gap-3">
-          {heroSlides.map((_, idx) => (
+          {HERO_SLIDES.map((_, idx) => (
             <button
               key={idx}
               onClick={() => handleDotClick(idx)}
@@ -114,43 +109,50 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* BLOG POSTS SECTION */}
-      {blogPosts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-12">
-          <h2 className="text-4xl font-black mb-8">Latest Articles</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {blogPosts.map((post) => (
-              <div key={post.id} className="bg-white shadow-lg rounded-xl p-6">
-                <img
-                  src={post.image || '/slider/DSC_5145.jpg'}
-                  alt={post.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
+      {/* GALLERY SECTION */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-4">
+            <div>
+              <p className="text-amber-500 font-black uppercase tracking-[0.3em] text-[10px] mb-2 underline decoration-2 underline-offset-4">The Camp Experience</p>
+              <h2 className="text-6xl font-black italic uppercase tracking-tighter">Gallery</h2>
+            </div>
+            <Link 
+              to="/gallery" 
+              className="group flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-black uppercase text-xs hover:bg-amber-500 transition-all shadow-lg"
+            >
+              Full Gallery <ImageIcon size={16} className="group-hover:rotate-12 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {STATIC_GALLERY.map((img, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="relative aspect-square overflow-hidden rounded-[2.5rem] bg-slate-100 group shadow-md hover:shadow-2xl transition-shadow"
+              >
+                <img 
+                  src={img.url} 
+                  alt={img.caption} 
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-110"
+                  loading="lazy"
                 />
-                <h3 className="font-bold text-xl mb-2">{post.title}</h3>
-                <p className="text-slate-600 text-sm">{post.excerpt}</p>
-                <Link
-                  to={`/blog/${post.slug}`}
-                  className="mt-3 inline-block text-amber-400 font-semibold hover:underline"
-                >
-                  Read More
-                </Link>
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all p-8 flex flex-col justify-end text-center">
+                  <p className="text-white text-[10px] font-black uppercase italic tracking-[0.2em]">
+                    {img.caption}
+                  </p>
+                </div>
+              </motion.div>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <CountdownTimer />
-
-      <footer className="py-12 bg-slate-50 border-t border-slate-100 flex flex-col items-center">
-        <Link
-          to="/login"
-          className="flex items-center gap-2 text-[10px] font-black text-slate-300 hover:text-amber-500 transition-colors uppercase tracking-[0.3em]"
-        >
-          <LogIn size={14} /> Admin Access
-        </Link>
-      </footer>
-
       <Footer />
     </div>
   );
