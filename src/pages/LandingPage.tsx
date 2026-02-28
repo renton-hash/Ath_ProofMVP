@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ImageIcon } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Components
@@ -86,12 +86,7 @@ export function LandingPage() {
             <p className="text-slate-300 text-xl md:text-2xl mb-12 max-w-2xl font-medium leading-relaxed">
               Ife Youth Sports Camp 2026. High-performance training for the next generation of champions.
             </p>
-            <Link
-              to="/registration"
-              className="inline-flex items-center gap-4 px-10 py-5 bg-white text-slate-900 font-black rounded-2xl hover:bg-amber-400 transition-all uppercase tracking-tight shadow-2xl"
-            >
-              Register Now <ArrowRight size={20} />
-            </Link>
+            
           </motion.div>
         </div>
 
